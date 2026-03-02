@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.20.0)
+project(csvParser VERSION 0.1)
+set(SOURCE_LIB csvParser.cpp)
+set(SOURCE_HD csvParser.h)
+add_library(${PROJECT_NAME} STATIC ${SOURCE_LIB} ${SOURCE_HD})
