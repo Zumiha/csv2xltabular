@@ -74,7 +74,8 @@ void CSVtoXLTABularConverter::convert()
     auto table_config_ = calculateTableConfig(header_size);
 
     std::string header_line;
-
+    latex_string_ +="\\newcounter{tablefigure}[section]\n"
+                    "\\renewcommand{\\thetablefigure}{\\thesection.\\arabic{tablefigure}}\n\n";  
     for (int i = 0; i < table_config_.tables_rows_config.size(); i++) {
         // Render header line
         int cell_start = table_config_.tables_rows_config[i].col_start;
@@ -134,7 +135,9 @@ void CSVtoXLTABularConverter::tableRender(
     const std::string& header_line_
 ) {
     auto table_width = end_cell - start_cell + 1;
-    latex_string_ += "\\setlength\\LTleft{0cm} % Adjust the value as needed\n"
+    latex_string_ +="\\setlength\\LTleft{0cm}\n"
+                    "\\stepcounter{tablefigure}\n"
+                    "\\noindent Таблица~\\thetablefigure: Измерения толщины стенки~\\vspace{-0.75em}\n"
                     "\\begin{xltabular}{" + std::to_string(_table_width) + "mm}{|c|*{" + std::to_string(table_width) + "}{m{" + std::to_string(_column_width) + "mm}|}}\n"
                     "\\hline\n"
                     "\\diagbox{час}{L,мм} & ";
@@ -165,5 +168,5 @@ void CSVtoXLTABularConverter::tableRender(
 
         }
     }
-    latex_string_ += "\\end{xltabular}%\n\\vspace{-1em}\n";
+    latex_string_ += "\\end{xltabular}%\n\\vspace{0em}\n\n";
 }
