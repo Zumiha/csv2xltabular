@@ -7,8 +7,9 @@ int main(int argc, char* argv[]) {
         converter.exportToFile();
         
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << "\n";
-        return 1;
+        std::cerr << "Error: " << e.what() << std::endl;
+    } catch (int e) {
+        std::cerr << "Error. Incorrect function exit: " << e << std::endl;
     }
     return 0;
 }

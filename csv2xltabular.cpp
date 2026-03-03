@@ -19,9 +19,8 @@ TableConfig CSVtoXLTABularConverter::calculateTableConfig(int _header_size) {
     TableConfig table_settings{};
     auto effective_columns = _header_size - 1; std::cout << "\neffective_columns: " << effective_columns << "\n";
     for (int i = max_columns_; i >= 1; --i) {
-        std::cout << "Counting loop: " << i << "\t";
-        int k = effective_columns / i; std::cout << "k: " << k << "\t";
-        int r = effective_columns % i; std::cout << "r: " << r << "\n";
+        int k = effective_columns / i; 
+        int r = effective_columns % i; 
         
         if ((effective_columns / i == 1 && r == 0) || effective_columns / i == 0) {
             std::cout << "CSV columns fit in one table: " << effective_columns;
@@ -33,7 +32,7 @@ TableConfig CSVtoXLTABularConverter::calculateTableConfig(int _header_size) {
 
         if (r == 0 || r >= this->remdnr_min_) {
             std::cout << "\nNumber of tables with " << i << " columns: " << k << "\n";
-            // table_settings.table_count = i; table_settings.max_columns = k;
+
             int col_start = 1, col_end = i;
             for (int j = 0; j < k; ++j) {
                 table_settings.tables_rows_config.push_back({false, col_start, col_end});
@@ -57,7 +56,7 @@ TableConfig CSVtoXLTABularConverter::calculateTableConfig(int _header_size) {
             return table_settings;  
         }
     }
-    return table_settings; // Default return, should not reach here
+    throw -1;
 }
 
 void CSVtoXLTABularConverter::convert()
