@@ -3,8 +3,8 @@
 CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename, const std::string &ini_filename) {
     ini_parser_ = new IniParser(ini_filename);
     // lang_ = ini_parser_->getValue<std::string>("table_settings.lang"); // Deleted as rudimentary.
-    start_colum_ = ini_parser_->getValue<int>("source_csv.start_column");
     start_row_ = ini_parser_->getValue<int>("source_csv.start_row");
+    start_colum_ = ini_parser_->getValue<int>("source_csv.start_column");
     
     // max_columns_ = ini_parser_->getValue<int>("table_settings.max_columns"); // delete this line, using table_config_ struct for teble settings
 
@@ -69,7 +69,7 @@ TableConfig CSVtoXLTABularConverter::calculateTableConfig(int _header_size) {
 void CSVtoXLTABularConverter::convert()
 {
     std::setlocale(LC_ALL, "Russian"); // Set locale to the user's environment default
-    auto table = csv_parser_->parse_all();
+    auto table = csv_parser_->parse_all(start_row_, start_colum_);
 
     auto header = table[1];
     int header_size = static_cast<int>(header.size()); 
