@@ -18,6 +18,9 @@ class TableConfig {
 public:
     std::vector<TablesRows> tables_rows_config;
     
+    int max_columns = 12; // Render default max columns per page
+    int remdnr_min = 8; // Minimum remainder
+
     int table_width = 180; // mm, total width of the table in LaTeX
     int columns_sum_width = 102; // mm, sum of column widths (excluding the first column)
     float table_column_width; // mm, width of each column in the main tables
@@ -34,20 +37,22 @@ public:
 
     // Convert CSV to LaTeX tabular format based on INI configuration
     void convert();  
-    void exportToFile(const std::string& output_filename = "csv_table.tex");
+    void exportToFile(const std::string& output_filename = "wt_table.tex");
     
     
     private:
     CSVParser* csv_parser_;
     IniParser* ini_parser_;
     
+    int start_colum_ = 0;
+    int start_row_ = 0;
     
-    int max_columns_ = 12; // Render default max columns per page
-    int remdnr_min_ = 8; // Minimum remainder
+    // int max_columns_ = 12; // Render default max columns per page
+    // int remdnr_min_ = 8; // Minimum remainder
     
     TableConfig table_config_;
     
-    std::string lang_ = "rus"; // Default language
+    // std::string lang_ = "rus"; // Default language. Deleted as rudimentary. 
     std::string latex_string_ = ""; // LaTeX tabular format string
     
     std::string headerLineRender(

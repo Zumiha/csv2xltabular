@@ -8,40 +8,43 @@ CSVParser::CSVParser(const std::string& filename, char delimiter)
 }
 
 // Parse entire CSV file into map structure
-std::map<int, std::vector<std::string>> CSVParser::parse_all(){
+// map with row number and vector<string> of values
+std::map<int, std::vector<std::string>> CSVParser::parse_all(int start_row, int start_col){
     std::map<int, std::vector<std::string>> table;
     reset_stream(); // Ensure starting from beginning
 
     // Read all lines into map
-    while (auto row = next_row()) {
+    while (auto row = next_row(start_row, start_col)) {
         table[static_cast<int>(row->line_number)] = std::move(row->fields);
     }
 
     if(table.empty()) {
-        throw std::runtime_error("CSV file is empty or unreadable.");
+        throw std::runtime_error("No data found from row " + std::to_string(start_row) + ", col " + std::to_string(start_col));
     }
 
     return table;
 }
 
-std::optional<dataformat::Row> CSVParser::next_row() {
+std::optional<dataformat::Row> CSVParser::next_row(int start_row, int start_col) {
     std::string line;
-    if (!std::getline(file_, line)) {
-        return std::nullopt;
+    while (std::getline(file_, line)) {
+        ++line_num_;
+        if (static_cast<int>(line_num_) < start_row) continue; // skip early rows cheaply
+
+        dataformat::Row row;
+        row.line_number = line_num_;
+        row.fields = parse_line(line, start_col);  // parse only needed columns
+        return row;
     }
-    ++line_num_;
-    
-    dataformat::Row row;
-    row.line_number = line_num_;
-    row.fields = parse_line(line);
-    return row;
+    return std::nullopt;
 }
 
 // RFC 4180 state machine: handles quotes, embedded delimiters, escaped quotes
-std::vector<std::string> CSVParser::parse_line(const std::string& line) {
+std::vector<std::string> CSVParser::parse_line(const std::string& line, int start_col) {
     std::vector<std::string> fields;
     std::string field;
     bool in_quotes = false;
+    int col = 0; // Track column index for start_col
     
     for (size_t i = 0; i < line.size(); ++i) {
         char c = line[i];
@@ -62,19 +65,19 @@ std::vector<std::string> CSVParser::parse_line(const std::string& line) {
             if (c == '"') {
                 in_quotes = true;
             } else if (c == delimiter_) {
-                fields.push_back(field);
+                if (col >= start_col) fields.push_back(field); // accumulate only needed cols
                 field.clear();
+                ++col;
             } else {
                 field += c;
             }
         }
     }
     
-    fields.push_back(field); // Add last field
+    if (col >= start_col) fields.push_back(field); // Add last field
     
     if (in_quotes) {
-        throw std::runtime_error("Unterminated quoted field at line " + 
-                               std::to_string(line_num_));
+        throw std::runtime_error("Unterminated quoted field at line " + std::to_string(line_num_));
     }
     
     return fields;

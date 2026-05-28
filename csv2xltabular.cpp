@@ -2,8 +2,15 @@
 
 CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename, const std::string &ini_filename) {
     ini_parser_ = new IniParser(ini_filename);
-    lang_ = ini_parser_->getValue<std::string>("table_settings.lang");
-    max_columns_ = ini_parser_->getValue<int>("table_settings.max_columns");
+    // lang_ = ini_parser_->getValue<std::string>("table_settings.lang"); // Deleted as rudimentary.
+    start_colum_ = ini_parser_->getValue<int>("source_csv.start_column");
+    start_row_ = ini_parser_->getValue<int>("source_csv.start_row");
+    
+    // max_columns_ = ini_parser_->getValue<int>("table_settings.max_columns"); // delete this line, using table_config_ struct for teble settings
+
+    table_config_.max_columns = ini_parser_->getValue<int>("table_settings.max_columns");
+    table_config_.remdnr_min = ini_parser_->getValue<int>("table_settings.min_columns");
+     
     csv_parser_ = new CSVParser(csv_filename);
 }
 
@@ -18,7 +25,7 @@ CSVtoXLTABularConverter::~CSVtoXLTABularConverter()
 TableConfig CSVtoXLTABularConverter::calculateTableConfig(int _header_size) {
     TableConfig table_settings{};
     auto effective_columns = _header_size - 1; std::cout << "\neffective_columns: " << effective_columns << "\n";
-    for (int i = max_columns_; i >= 1; --i) {
+    for (int i = this->table_config_.max_columns; i >= 1; --i) {
         int k = effective_columns / i; 
         int r = effective_columns % i; 
         
@@ -30,7 +37,7 @@ TableConfig CSVtoXLTABularConverter::calculateTableConfig(int _header_size) {
             return table_settings;    
         }
 
-        if (r == 0 || r >= this->remdnr_min_) {
+        if (r == 0 || r >= this->table_config_.remdnr_min) {
             std::cout << "\nNumber of tables with " << i << " columns: " << k << "\n";
 
             int col_start = 1, col_end = i;
