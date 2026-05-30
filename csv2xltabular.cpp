@@ -69,9 +69,9 @@ TableConfig CSVtoXLTABularConverter::calculateTableConfig(int _header_size) {
 void CSVtoXLTABularConverter::convert()
 {
     std::setlocale(LC_ALL, "Russian"); // Set locale to the user's environment default
-    auto table = csv_parser_->parse_all(start_row_, start_colum_);
+    parsed_table_ = csv_parser_->parse_all(start_row_, start_colum_);
 
-    auto header = table[1];
+    auto header = parsed_table_[1];
     int header_size = static_cast<int>(header.size()); 
     std::cout << "\nheader_size: " << header_size << "\n";
 
@@ -104,7 +104,7 @@ void CSVtoXLTABularConverter::convert()
             table_size, 
             cell_start, 
             cell_end, 
-            table, 
+            parsed_table_, 
             header_line
         );
     } 

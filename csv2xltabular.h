@@ -38,9 +38,16 @@ public:
     // Convert CSV to LaTeX tabular format based on INI configuration
     void convert();  
     void exportToFile(const std::string& output_filename = "wt_table.tex");
-    
+    void exportToCSV(const std::string& output_filename = "debug.csv") const {
+        // for (const auto& [k, v] : parsed_table_)
+        // {
+        //     std::cerr << "row " << k << ": " << v.size() << " fields | first='" << (!v.empty() ? v[0] : "<empty>") << "'\n";
+        // }
+        csv_parser_->export_csv(parsed_table_, output_filename);
+    }    
     
     private:
+
     CSVParser* csv_parser_;
     IniParser* ini_parser_;
     
@@ -51,6 +58,9 @@ public:
     // int remdnr_min_ = 8; // Minimum remainder
     
     TableConfig table_config_;
+
+    // Parsed table as map
+    std::map<int, std::vector<std::string>> parsed_table_;
     
     // std::string lang_ = "rus"; // Default language. Deleted as rudimentary. 
     std::string latex_string_ = ""; // LaTeX tabular format string
