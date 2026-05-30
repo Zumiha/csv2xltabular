@@ -27,9 +27,12 @@ public:
     // Key: row number (1-based), Value: vector of field strings
     // Throws runtime_error on parse failures
     std::map<int, std::vector<std::string>> parse_all(int start_row = 0, int start_col = 0);
+    
+    // csvParser.h — add to public interface
+    void export_csv(const std::map<int, std::vector<std::string>>& table, const std::string& filename) const;
 
     size_t current_line() const { return line_num_; }
-    
+            
 private:
     std::ifstream file_;
     char delimiter_;
@@ -37,7 +40,7 @@ private:
 
     // Parse next row from CSV file
     // Returns nullopt when EOF reached
-    std::optional<dataformat::Row> next_row(int start_row, int start_col);
+    std::optional<dataformat::Row> next_row(int start_col);
 
     // State machine parser for handling quoted fields with embedded delimiters/newlines
     std::vector<std::string> parse_line(const std::string& line, int start_col);

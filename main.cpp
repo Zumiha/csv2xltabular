@@ -5,6 +5,7 @@ int main(int argc, char* argv[]) {
         CSVtoXLTABularConverter converter("data.csv", "settings.ini");
         converter.convert();
         converter.exportToFile();
+        // converter.exportToCSV(); 
         
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
