@@ -54,15 +54,11 @@ public:
     int start_colum_ = 0;
     int start_row_ = 0;
     
-    // int max_columns_ = 12; // Render default max columns per page
-    // int remdnr_min_ = 8; // Minimum remainder
-    
     TableConfig table_config_;
 
     // Parsed table as map
     std::map<int, std::vector<std::string>> parsed_table_;
     
-    // std::string lang_ = "rus"; // Default language. Deleted as rudimentary. 
     std::string latex_string_ = ""; // LaTeX tabular format string
     
     std::string headerLineRender(
