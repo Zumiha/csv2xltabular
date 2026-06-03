@@ -65,6 +65,32 @@ std::map<int, std::vector<std::string>> CSVParser::parse_all(int start_row, int 
     return table;
 }
 
+std::map<int, std::vector<std::string>> CSVParser::extractTable(const std::map<int, std::vector<std::string>> &table, const std::vector<size_t> &columns_list)
+{
+    std::map<int, std::vector<std::string>> extracted;
+    
+
+    // std::cout << "\nExtracting project data.\n";
+    for (auto& [row_num, fields] : table) {
+        for (const auto& element : columns_list) {
+            auto it = fields.begin() + element;
+            extracted[row_num].push_back(*it);
+        }
+    }
+    return extracted;
+}
+
+void CSVParser::formatTable(std::map<int, std::vector<std::string>> &table, const std::vector<size_t> &columns_list)
+{
+    for (auto& [row_num, fields] : table) {
+        for (const auto& element : columns_list) {
+            fields.erase(fields.begin() + element);
+            // auto it = fields.begin() + element;
+            // *it = " -- ";
+        }
+    }
+}
+
 void CSVParser::export_csv(const std::map<int, std::vector<std::string>> &table, const std::string &filename) const
 {
     std::ofstream out(filename);

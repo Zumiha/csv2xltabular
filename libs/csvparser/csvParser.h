@@ -28,6 +28,8 @@ public:
     // Throws runtime_error on parse failures
     std::map<int, std::vector<std::string>> parse_all(int start_row = 0, int start_col = 0);
     
+    std::map<int, std::vector<std::string>> extractTable (const std::map<int, std::vector<std::string>>& table, const std::vector<size_t>& columns_list);
+    void formatTable (std::map<int, std::vector<std::string>>& table, const std::vector<size_t>& columns_list); 
     // csvParser.h — add to public interface
     void export_csv(const std::map<int, std::vector<std::string>>& table, const std::string& filename) const;
 
