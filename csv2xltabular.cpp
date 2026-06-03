@@ -12,6 +12,19 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
     csv_parser_ = new CSVParser(csv_filename);
     std::setlocale(LC_ALL, "Russian"); // Set locale to the user's environment default
     parsed_table_ = csv_parser_->parse_all(start_row_, start_colum_);
+
+    switch (ini_parser_->getValue<int>("source_csv.type"))
+    {
+    case 1:
+        convert_type_ = DataType::WtTable;
+        break;
+    case 2:
+        convert_type_ = DataType::MtmSpreadSheet;
+        break;    
+    default:
+        convert_type_ = DataType::Default;
+        break;
+    }
 }
 
 CSVtoXLTABularConverter::~CSVtoXLTABularConverter()
@@ -67,7 +80,39 @@ TableConfig CSVtoXLTABularConverter::calculateTableConfig(int _header_size) {
 }
 
 void CSVtoXLTABularConverter::convert()
-{   
+{
+    switch (convert_type_)
+    {
+    case DataType::WtTable:
+        modWtTable();
+        break;
+    case DataType::MtmSpreadSheet:
+        modMtmSpSh();
+        break;
+    default:
+        std::cout << "Chosen convert type \"" << to_string(convert_type_) << "\" not implemented.";
+        break;
+    }    
+    table_converted_ = true;
+}
+
+void CSVtoXLTABularConverter::exportToFile(const std::string &output_filename) {    
+    std::ofstream outfile(output_filename);
+    if (!outfile.is_open()) {
+        throw std::runtime_error("Failed to open output file: " + output_filename);
+    }
+    outfile << this->latex_string_;
+    outfile.close();
+}
+
+void CSVtoXLTABularConverter::modDefault()
+{
+    // Default table conversion block
+}
+
+void CSVtoXLTABularConverter::modWtTable()
+{
+    // WT measurement table conversion block
     auto header = parsed_table_[1];
     int header_size = static_cast<int>(header.size()); 
     std::cout << "\nheader_size: " << header_size << "\n";
@@ -104,19 +149,16 @@ void CSVtoXLTABularConverter::convert()
             parsed_table_, 
             header_line
         );
-    } 
-}
-
-void CSVtoXLTABularConverter::exportToFile(const std::string &output_filename) {
-    std::ofstream outfile(output_filename);
-    if (!outfile.is_open()) {
-        throw std::runtime_error("Failed to open output file: " + output_filename);
     }
-    outfile << this->latex_string_;
-    outfile.close();
 }
 
-std::string CSVtoXLTABularConverter::headerLineRender(int start_cell, int end_cell, const std::vector<std::string>& header_) {
+void CSVtoXLTABularConverter::modMtmSpSh()
+{
+    // MTM SpreadSheet table conversion block
+}
+
+std::string CSVtoXLTABularConverter::headerLineRender(int start_cell, int end_cell, const std::vector<std::string> &header_)
+{
     std::string line;
     for (auto i = start_cell; i <= end_cell; ++i) {
         line += header_[i];

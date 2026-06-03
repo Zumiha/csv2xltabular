@@ -27,6 +27,22 @@ public:
 
 };
 
+enum class DataType {
+    Default,
+    WtTable,
+    MtmSpreadSheet
+};
+
+// Helper function
+constexpr std::string_view to_string(DataType t_) {
+    switch (t_) {
+        case DataType::Default:         return "Default";
+        case DataType::WtTable:         return "WtTable";
+        case DataType::MtmSpreadSheet:  return "MtmSpreadSheet";
+        default:                        return "Unknown";
+    }
+}
+
 class CSVtoXLTABularConverter {
 public:
     CSVtoXLTABularConverter() = delete;
@@ -58,6 +74,12 @@ public:
 
     // Parsed table as map
     std::map<int, std::vector<std::string>> parsed_table_;
+    DataType convert_type_;
+    bool table_converted_ = false;
+
+    void modDefault();
+    void modWtTable();
+    void modMtmSpSh();
     
     std::string latex_string_ = ""; // LaTeX tabular format string
     
