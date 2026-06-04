@@ -80,6 +80,9 @@ public:
     void modDefault();
     void modWtTable();
     void modMtmSpSh();
+
+    bool isEmptyRow(const std::vector<std::string>& vec);
+    std::vector<std::string> extractAndValidate(const std::map<int, std::vector<std::string>>& table);
     
     std::string latex_string_ = ""; // LaTeX tabular format string
     

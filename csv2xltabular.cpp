@@ -83,10 +83,12 @@ void CSVtoXLTABularConverter::convert()
 {
     switch (convert_type_)
     {
-    case DataType::WtTable:
+    case DataType::WtTable:        
+        std::cout << "Modding to WT table format\n";
         modWtTable();
         break;
     case DataType::MtmSpreadSheet:
+        std::cout << "Modding to SpreadSheet format\n";
         modMtmSpSh();
         break;
     default:
@@ -154,7 +156,69 @@ void CSVtoXLTABularConverter::modWtTable()
 
 void CSVtoXLTABularConverter::modMtmSpSh()
 {
+    // Extract project data from csv
+    std::vector<std::string> prj_field_header = {
+        "Pprj", "Pwork", "Pallow", "Year", "WT", "D", "SMYS"};
+    std::vector<size_t> prj_fields = {
+        47, 48, 49, 50, 52, 53, 54};
+    auto data_from_table = csv_parser_->extractTable(parsed_table_, prj_fields);
+    
+    auto prj_info = extractAndValidate(data_from_table);
+    std::map<int, std::vector<std::string>> prj_info_table;
+
+    prj_info_table[1] = prj_field_header;
+    prj_info_table[2] = prj_info;
+    csv_parser_->export_csv(prj_info_table, "prj_info.csv");
+
+    // Remove columns not used in spreadsheet
+    std::vector<size_t> columns_list = {62, 61, 60, 59, 58, 57, 56, 55, 54, 53,
+                                        52, 51, 50, 49, 48, 47, 46, 45, 44, 40, 
+                                        39, 38, 36, 35, 34, 33, 32, 31, 29, 28, 
+                                        27, 26, 25, 24, 23, 21, 19, 18, 16, 15, 
+                                        14, 13, 12, 11, 10, 9, 8, 6
+                                        };
     // MTM SpreadSheet table conversion block
+    csv_parser_->formatTable(parsed_table_, columns_list);
+}
+
+bool CSVtoXLTABularConverter::isEmptyRow(const std::vector<std::string> &vec) {
+    bool all_empty = true;
+    for (const auto& s : vec)
+        if (!s.empty() && s != "\"\"") all_empty = false;
+    return all_empty;
+}
+
+std::vector<std::string> CSVtoXLTABularConverter::extractAndValidate(const std::map<int, std::vector<std::string>> &table)
+{
+    std::cout << "\nExtracting and validating project data.\n";
+
+    std::vector<std::string> values; // first non-empty row captured here
+    for (const auto& [key, row] : table) {
+        if (isEmptyRow(row)) continue; // skip empty rows and \"\" rows
+        if (values.empty()) {            
+            values = row; // capture first non-empty row as reference
+            continue;
+        }
+
+        // Subsequent non-empty rows: must match values exactly
+        if (row.size() != values.size()) {
+            std::ostringstream oss;
+            oss << "Row " << key << ": column count mismatch ("
+                << row.size() << " vs expected " << values.size() << ")";
+            throw std::runtime_error(oss.str());
+        }
+
+        for (std::size_t i = 0; i < values.size(); ++i) {
+            if (row[i] != values[i] ) {
+                std::ostringstream oss;
+                oss << "Row " << key << ", col " << i
+                    << ": value mismatch (\"" << row[i]
+                    << "\" vs expected \"" << values[i] << "\")";
+                throw std::runtime_error(oss.str());
+            }
+        }        
+    }
+    return values;
 }
 
 std::string CSVtoXLTABularConverter::headerLineRender(int start_cell, int end_cell, const std::vector<std::string> &header_)
