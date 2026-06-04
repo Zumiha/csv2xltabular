@@ -84,6 +84,9 @@ public:
     bool isEmptyRow(const std::vector<std::string>& vec);
     std::vector<std::string> extractAndValidate(const std::map<int, std::vector<std::string>>& table);
     
+    void mergeColumns(std::map<int, std::vector<std::string>>& table, size_t primary_col, size_t secondary_col);
+
+
     std::string latex_string_ = ""; // LaTeX tabular format string
     
     std::string headerLineRender(
