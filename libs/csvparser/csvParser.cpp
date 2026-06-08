@@ -21,7 +21,7 @@ std::map<int, std::vector<std::string>> CSVParser::parse_all(int start_row, int 
     // ── Phase 1: confirm parameters and reset state ──────────────────────────
     std::cerr << "[DBG] parse_all(start_row=" << start_row << ", start_col=" << start_col << ")\n";
     std::cerr << "[DBG] line_num_ after reset = " << line_num_ << "\n";
-    std::cerr << "[DBG] expected to skip " << (start_row - 1) << " row(s)\n-----------------------------\n";
+    std::cerr << "[DBG] expected to skip " << (start_row - 1) << std::endl;
 
     // ── Phase 2: dummy skip loop ─────────────────────────────────────────────
     std::string dummy;
@@ -33,11 +33,10 @@ std::map<int, std::vector<std::string>> CSVParser::parse_all(int start_row, int 
     **/   
     while (skipped < static_cast<size_t>(start_row - 1) && std::getline(file_, dummy)) 
     {
-        // ++line_num_; 
         ++skipped;
-        std::cerr << "[DBG] skipped row " << skipped << ": '" << dummy << "'\n";
+        // std::cerr << "[DBG] skipped row " << skipped << ": '" << dummy << "'\n";
     }
-    std::cerr << "\n[DBG] skip phase done -- skipped=" << skipped << "\n-----------------------------\n";
+    std::cerr << "\n[DBG] skip phase done -- skipped=" << skipped << std::endl;
 
     // ── Phase 3: parse rows into table ───────────────────────────────────────
     while (auto row = next_row(start_col)) {
@@ -55,7 +54,7 @@ std::map<int, std::vector<std::string>> CSVParser::parse_all(int start_row, int 
     }
 
     // ── Phase 4: summary ─────────────────────────────────────────────────────
-    std::cerr << "\n[DBG] parse_all complete -- table size=" << table.size() << "\n-----------------------------\n";
+    std::cerr << "[DBG] parse_all complete -- table size=" << table.size() << "\n-----------------------------\n";
     
     // for (const auto& [k, v] : table)
     //     std::cerr << "[DBG] table[" << k << "] = " << v.size() << " fields" << " | first='" << (!v.empty() ? v[0] : "<empty>") << "'\n";
@@ -65,7 +64,7 @@ std::map<int, std::vector<std::string>> CSVParser::parse_all(int start_row, int 
     return table;
 }
 
-std::map<int, std::vector<std::string>> CSVParser::extractTable(const std::map<int, std::vector<std::string>> &table, const std::vector<size_t> &columns_list)
+std::map<int, std::vector<std::string>> CSVParser::extractTable(const std::map<int, std::vector<std::string>> &table, const std::vector<int> &columns_list)
 {
     std::map<int, std::vector<std::string>> extracted;
     
@@ -80,7 +79,7 @@ std::map<int, std::vector<std::string>> CSVParser::extractTable(const std::map<i
     return extracted;
 }
 
-void CSVParser::formatTable(std::map<int, std::vector<std::string>> &table, const std::vector<size_t> &columns_list)
+void CSVParser::formatTable(std::map<int, std::vector<std::string>> &table, const std::vector<int> &columns_list)
 {
     for (auto& [row_num, fields] : table) {
         for (const auto& element : columns_list) {
