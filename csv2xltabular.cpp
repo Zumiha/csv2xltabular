@@ -8,6 +8,12 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
 
     table_config_.max_columns = ini_parser_->getValue<int>("table_settings.max_columns");
     table_config_.remdnr_min = ini_parser_->getValue<int>("table_settings.min_columns");
+
+    table_config_.delete_cols = ini_parser_->getValue<std::vector<int>>("source_csv.delete_cols");
+    table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("source_csv.prj_cols");
+    
+    table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("source_csv.prj_cols_header");
+
      
     csv_parser_ = new CSVParser(csv_filename);
     std::setlocale(LC_ALL, "Russian"); // Set locale to the user's environment default
@@ -157,29 +163,17 @@ void CSVtoXLTABularConverter::modWtTable()
 void CSVtoXLTABularConverter::modMtmSpSh()
 {
     // Extract project data from csv
-    std::vector<std::string> prj_field_header = {
-        "Pprj", "Pwork", "Pallow", "Year", "WT", "D", "SMYS"};
-    std::vector<size_t> prj_fields = {
-        47, 48, 49, 50, 52, 53, 54};
-    auto data_from_table = csv_parser_->extractTable(parsed_table_, prj_fields);
-    
+    auto data_from_table = csv_parser_->extractTable(parsed_table_, table_config_.prj_cols);
     auto prj_info = extractAndValidate(data_from_table);
     std::map<int, std::vector<std::string>> prj_info_table;
 
-    prj_info_table[1] = prj_field_header;
+    prj_info_table[1] = table_config_.prj_cols_header;
     prj_info_table[2] = prj_info;
     csv_parser_->export_csv(prj_info_table, "prj_info.csv");
     
     // MTM SpreadSheet table conversion block
     // Remove columns not used in spreadsheet
-    std::vector<size_t> columns_list = {62, 61, 60, 59, 58, 57, 56, 55, 54, 53,
-                                        52, 51, 50, 49, 48, 47, 46, 45, 44, 40, 
-                                        39, 38, 36, 35, 34, 33, 32, 31, 29, 28, 
-                                        27, 26, 25, 24, 23, 21, 19, 18, 16, 15, 
-                                        14, 13, 12, 11, 10, 9, 8, 6
-                                        };
-    
-    csv_parser_->formatTable(parsed_table_, columns_list);
+    csv_parser_->formatTable(parsed_table_, table_config_.delete_cols);
     // Merge columns
     mergeColumns(parsed_table_, 0, 8); // Merge lenght columns
 }
@@ -236,7 +230,6 @@ void CSVtoXLTABularConverter::mergeColumns(std::map<int, std::vector<std::string
 
     for (auto& [row, fields] : table) {        
         if (fields[primary_col].empty() || fields[primary_col] == "\"\"") {
-            std::cout << "Processing row " << row << "\n";
             fields[primary_col] = fields[secondary_col]; // merge into empty primary
             continue;
         } 

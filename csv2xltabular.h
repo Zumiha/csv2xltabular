@@ -25,6 +25,10 @@ public:
     int columns_sum_width = 102; // mm, sum of column widths (excluding the first column)
     float table_column_width; // mm, width of each column in the main tables
 
+    std::vector<int> delete_cols;
+    std::vector<int> prj_cols;
+    std::vector<std::string> prj_cols_header;
+
 };
 
 enum class DataType {
