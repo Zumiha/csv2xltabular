@@ -152,3 +152,15 @@ std::string IniParser::getKeyValue(const std::string &request) {
     std::string value = getKeyValue(out[0],out[1]);
     return value;
 }
+
+std::vector<std::string> IniParser::splitValue(const std::string& raw, char delim) {
+    // trimString() already removed all spaces, so raw is e.g. "1,3,7" or "a,b,c"
+    std::vector<std::string> tokens;
+    std::istringstream ss(raw);
+    std::string token;
+    while (std::getline(ss, token, delim)) {
+        if (!token.empty())
+            tokens.push_back(token);
+    }
+    return tokens;
+}
