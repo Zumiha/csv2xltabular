@@ -8,12 +8,6 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
 
     table_config_.max_columns = ini_parser_->getValue<int>("table_settings.max_columns");
     table_config_.remdnr_min = ini_parser_->getValue<int>("table_settings.min_columns");
-
-    table_config_.delete_cols = ini_parser_->getValue<std::vector<int>>("source_csv.delete_cols");
-    table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("source_csv.prj_cols");
-    
-    table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("source_csv.prj_cols_header");
-
      
     csv_parser_ = new CSVParser(csv_filename);
     std::setlocale(LC_ALL, "Russian"); // Set locale to the user's environment default
@@ -26,6 +20,9 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
         break;
     case 2:
         convert_type_ = DataType::MtmSpreadSheet;
+        table_config_.delete_cols = ini_parser_->getValue<std::vector<int>>("source_csv.delete_cols");
+        table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("source_csv.prj_cols");
+        table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("source_csv.prj_cols_header");
         break;    
     default:
         convert_type_ = DataType::Default;
@@ -166,16 +163,32 @@ void CSVtoXLTABularConverter::modMtmSpSh()
     auto data_from_table = csv_parser_->extractTable(parsed_table_, table_config_.prj_cols);
     auto prj_info = extractAndValidate(data_from_table);
     std::map<int, std::vector<std::string>> prj_info_table;
-
+    
     prj_info_table[1] = table_config_.prj_cols_header;
     prj_info_table[2] = prj_info;
     csv_parser_->export_csv(prj_info_table, "prj_info.csv");
     
+    
     // MTM SpreadSheet table conversion block
+    // Merge columns
+    auto kp_pos = static_cast<size_t>(ini_parser_->getValue<int>("source_csv.kp_col"));
+    mergeColumns(parsed_table_, 0, kp_pos);
+
     // Remove columns not used in spreadsheet
     csv_parser_->formatTable(parsed_table_, table_config_.delete_cols);
-    // Merge columns
-    mergeColumns(parsed_table_, 0, 8); // Merge lenght columns
+    
+    // std::vector<std::string> table_header = {"KP", "FP type", "Description", "N", "E", "Anom #",
+    //                                         "Danger degree", "F", "length", "Tsafe", "SCF", "Strain",
+    //                                         "Psafe", "ERF"};
+    // parsed_table_[0] = table_header;
+
+    // Check if header needed, attach header
+    auto header = ini_parser_->getValue<std::string>("source_csv.SpSh_header_val");
+    if (header == "true") {
+        std::cout << "Creating header for SpreadSheet" << std::endl;
+        auto table_header = ini_parser_->getValue<std::vector<std::string>>("source_csv.SpSh_header");
+        parsed_table_[0] = table_header;
+    }
 }
 
 bool CSVtoXLTABularConverter::isEmptyRow(const std::vector<std::string> &vec) {
@@ -240,10 +253,10 @@ void CSVtoXLTABularConverter::mergeColumns(std::map<int, std::vector<std::string
         }
     }
 
-    // Remove secondary column after merge
-    for (auto& [row, fields] : table) {
-        fields.erase(fields.begin() + secondary_col);
-    }
+    // // Remove secondary column after merge
+    // for (auto& [row, fields] : table) {
+    //     fields.erase(fields.begin() + secondary_col);
+    // }
 }
 
 std::string CSVtoXLTABularConverter::headerLineRender(int start_cell, int end_cell, const std::vector<std::string> &header_)
