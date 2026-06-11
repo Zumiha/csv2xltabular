@@ -27,7 +27,8 @@ public:
     // Key: row number (1-based), Value: vector of field strings
     // Throws runtime_error on parse failures
     std::map<int, std::vector<std::string>> parse_all(int start_row = 0, int start_col = 0);
-    
+    // Merge columns
+    void mergeColumns(std::map<int, std::vector<std::string>>& table, size_t primary_col, size_t secondary_col); 
     std::map<int, std::vector<std::string>> extractTable (const std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list);
     void formatTable (std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list); 
     // csvParser.h — add to public interface

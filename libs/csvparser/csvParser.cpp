@@ -64,6 +64,29 @@ std::map<int, std::vector<std::string>> CSVParser::parse_all(int start_row, int 
     return table;
 }
 
+void CSVParser::mergeColumns(std::map<int, std::vector<std::string>> &table, size_t primary_col, size_t secondary_col)
+{
+    std::cout << "\nMerging columns " << primary_col << " and " << secondary_col << "\n";
+
+    if (table[1].size() < std::max(primary_col, secondary_col) + 1) {
+        std::ostringstream oss;
+        oss << "Rows out of range for merge: row has only " << table[1].size() << " columns, but need at least " << std::max(primary_col, secondary_col) + 1;
+        throw std::runtime_error(oss.str());
+    }
+
+    for (auto& [row, fields] : table) {        
+        if (fields[primary_col].empty() || fields[primary_col] == "\"\"") {
+            fields[primary_col] = fields[secondary_col]; // merge into empty primary
+            continue;
+        } 
+        if (!fields[secondary_col].empty() && fields[secondary_col] != "\"\"") {
+            std::ostringstream oss;
+            oss << "Row " << row << ": cannot merge non-empty columns " << primary_col << " and " << secondary_col;
+            throw std::runtime_error(oss.str());
+        }
+    }
+}
+
 std::map<int, std::vector<std::string>> CSVParser::extractTable(const std::map<int, std::vector<std::string>> &table, const std::vector<int> &columns_list)
 {
     std::map<int, std::vector<std::string>> extracted;

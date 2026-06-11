@@ -172,15 +172,10 @@ void CSVtoXLTABularConverter::modMtmSpSh()
     // MTM SpreadSheet table conversion block
     // Merge columns
     auto kp_pos = static_cast<size_t>(ini_parser_->getValue<int>("source_csv.kp_col"));
-    mergeColumns(parsed_table_, 0, kp_pos);
+    csv_parser_->mergeColumns(parsed_table_, 0, kp_pos);
 
     // Remove columns not used in spreadsheet
     csv_parser_->formatTable(parsed_table_, table_config_.delete_cols);
-    
-    // std::vector<std::string> table_header = {"KP", "FP type", "Description", "N", "E", "Anom #",
-    //                                         "Danger degree", "F", "length", "Tsafe", "SCF", "Strain",
-    //                                         "Psafe", "ERF"};
-    // parsed_table_[0] = table_header;
 
     // Check if header needed, attach header
     auto header = ini_parser_->getValue<std::string>("source_csv.SpSh_header_val");
@@ -229,34 +224,6 @@ std::vector<std::string> CSVtoXLTABularConverter::extractAndValidate(const std::
         }        
     }
     return values;
-}
-
-void CSVtoXLTABularConverter::mergeColumns(std::map<int, std::vector<std::string>> &table, size_t primary_col, size_t secondary_col)
-{   
-    std::cout << "\nMerging columns " << primary_col << " and " << secondary_col << "\n";
-
-    if (table[1].size() < std::max(primary_col, secondary_col) + 1) {
-        std::ostringstream oss;
-        oss << "Rows out of range for merge: row has only " << table[1].size() << " columns, but need at least " << std::max(primary_col, secondary_col) + 1;
-        throw std::runtime_error(oss.str());
-    }
-
-    for (auto& [row, fields] : table) {        
-        if (fields[primary_col].empty() || fields[primary_col] == "\"\"") {
-            fields[primary_col] = fields[secondary_col]; // merge into empty primary
-            continue;
-        } 
-        if (!fields[secondary_col].empty() && fields[secondary_col] != "\"\"") {
-            std::ostringstream oss;
-            oss << "Row " << row << ": cannot merge non-empty columns " << primary_col << " and " << secondary_col;
-            throw std::runtime_error(oss.str());
-        }
-    }
-
-    // // Remove secondary column after merge
-    // for (auto& [row, fields] : table) {
-    //     fields.erase(fields.begin() + secondary_col);
-    // }
 }
 
 std::string CSVtoXLTABularConverter::headerLineRender(int start_cell, int end_cell, const std::vector<std::string> &header_)
