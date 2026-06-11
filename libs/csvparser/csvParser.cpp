@@ -70,19 +70,57 @@ void CSVParser::mergeColumns(std::map<int, std::vector<std::string>> &table, siz
 
     if (table[1].size() < std::max(primary_col, secondary_col) + 1) {
         std::ostringstream oss;
-        oss << "Rows out of range for merge: row has only " << table[1].size() << " columns, but need at least " << std::max(primary_col, secondary_col) + 1;
+        oss << "Out of range for merge: row has only " << table[1].size() << " columns, but need at least " << std::max(primary_col, secondary_col) + 1;
         throw std::runtime_error(oss.str());
     }
 
-    for (auto& [row, fields] : table) {        
-        if (fields[primary_col].empty() || fields[primary_col] == "\"\"") {
-            fields[primary_col] = fields[secondary_col]; // merge into empty primary
+    for (auto& [row, field] : table) {        
+        if (field[primary_col].empty() || field[primary_col] == "\"\"") {
+            field[primary_col] = field[secondary_col]; // merge into empty primary
             continue;
         } 
-        if (!fields[secondary_col].empty() && fields[secondary_col] != "\"\"") {
+        if (!field[secondary_col].empty() && field[secondary_col] != "\"\"") {
             std::ostringstream oss;
             oss << "Row " << row << ": cannot merge non-empty columns " << primary_col << " and " << secondary_col;
             throw std::runtime_error(oss.str());
+        }
+    }
+}
+
+void CSVParser::moveColumn(std::map<int, std::vector<std::string>> &table, size_t column_index, size_t column_new_index)
+{
+    std::cout << "\nMoving column from " << column_index << " to " << column_new_index << "\n";
+    if (table[1].size() < std::max(column_index, column_new_index) + 1) {
+        std::ostringstream oss;
+        oss << "Out of range for merge: row has only " << table[1].size() << " columns, but need at least " << std::max(column_index, column_new_index) + 1;
+        throw std::runtime_error(oss.str());
+    }
+
+    for (auto& [row, field] : table) {
+        field.insert(field.begin() + column_new_index, field[column_index]);
+    }
+    deleteColumn(table, column_index + 1);
+}
+
+void CSVParser::deleteColumn(std::map<int, std::vector<std::string>> &table, size_t column_index)
+{
+    std::cout << "Deleting column " << column_index << "\n";
+    if (table[1].size() < column_index + 1) {
+        std::ostringstream oss;
+        oss << "Out of range for merge: row has only " << table[1].size() << " columns";
+        throw std::runtime_error(oss.str());
+    } 
+
+    for (auto& [row_num, field]: table) {
+        field.erase(field.begin() + column_index);
+    }
+}
+
+void CSVParser::deleteColumns(std::map<int, std::vector<std::string>> &table, const std::vector<int> &columns_list)
+{
+    for (auto& [row_num, field] : table) {
+        for (const auto& element : columns_list) {
+            field.erase(field.begin() + element);
         }
     }
 }
@@ -102,16 +140,7 @@ std::map<int, std::vector<std::string>> CSVParser::extractTable(const std::map<i
     return extracted;
 }
 
-void CSVParser::formatTable(std::map<int, std::vector<std::string>> &table, const std::vector<int> &columns_list)
-{
-    for (auto& [row_num, fields] : table) {
-        for (const auto& element : columns_list) {
-            fields.erase(fields.begin() + element);
-            // auto it = fields.begin() + element;
-            // *it = " -- ";
-        }
-    }
-}
+
 
 void CSVParser::export_csv(const std::map<int, std::vector<std::string>> &table, const std::string &filename) const
 {
