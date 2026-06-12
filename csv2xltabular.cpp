@@ -32,10 +32,10 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
 
 CSVtoXLTABularConverter::~CSVtoXLTABularConverter()
 {
-    csv_parser_ = nullptr;
     delete csv_parser_;
-    ini_parser_ = nullptr;
+    csv_parser_ = nullptr;
     delete ini_parser_;
+    ini_parser_ = nullptr;
 }
 
 TableConfig CSVtoXLTABularConverter::calculateTableConfig(int _header_size) {
