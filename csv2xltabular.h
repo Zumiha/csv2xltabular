@@ -39,6 +39,12 @@ enum class DataType {
     MtmSpreadSheet
 };
 
+enum class SpShType {
+    Default,
+    Old,
+    INTI_1
+};
+
 // Helper function
 constexpr std::string_view to_string(DataType t_) {
     switch (t_) {
@@ -81,11 +87,14 @@ public:
     // Parsed table as map
     std::map<int, std::vector<std::string>> parsed_table_;
     DataType convert_type_;
+    SpShType sheet_type_;
     bool table_converted_ = false;
 
     void modDefault();
     void modWtTable();
     void modMtmSpSh();
+
+    void IntiFormat();
 
     bool isEmptyRow(const std::vector<std::string>& vec);
     std::map<int, std::vector<std::string>> extractAndValidate(const std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list, const std::vector<std::string>& header_list);

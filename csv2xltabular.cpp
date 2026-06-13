@@ -19,10 +19,25 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
         convert_type_ = DataType::WtTable;
         break;
     case 2:
-        convert_type_ = DataType::MtmSpreadSheet;
+        convert_type_ = DataType::MtmSpreadSheet;        
         table_config_.delete_cols = ini_parser_->getValue<std::vector<int>>("source_csv.delete_cols");
         table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("source_csv.prj_cols");
         table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("source_csv.prj_cols_header");
+
+        switch (ini_parser_->getValue<int>("source_csv.SpSh_type"))
+        {
+        case 0:
+            sheet_type_ = SpShType::Old;            
+            throw("no implementation for Old SheetType");
+            break;        
+        case 1:
+            sheet_type_ = SpShType::INTI_1;
+            break;        
+        default:
+            throw("no implementation for default SheetType");
+            break;
+        }
+
         break;    
     default:
         convert_type_ = DataType::Default;
@@ -187,7 +202,24 @@ void CSVtoXLTABularConverter::modMtmSpSh()
         parsed_table_[0] = table_header;
     }
 
-    // csv_parser_->moveColumn(parsed_table_, 6, 1);
+    switch (sheet_type_)
+    {
+    case SpShType::INTI_1:
+        IntiFormat();
+        break;    
+    default:
+        break;
+    }
+
+}
+
+void CSVtoXLTABularConverter::IntiFormat()
+{
+    csv_parser_->moveColumn(parsed_table_, 5, 1);
+    csv_parser_->moveColumn(parsed_table_, 8, 2);
+    csv_parser_->deleteColumn(parsed_table_, 8);
+    csv_parser_->deleteColumn(parsed_table_, 7);
+    
 }
 
 bool CSVtoXLTABularConverter::isEmptyRow(const std::vector<std::string> &vec) {
