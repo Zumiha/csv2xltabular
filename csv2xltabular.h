@@ -8,6 +8,8 @@
 #include <fstream>
 #include <string>
 
+#include <algorithm>
+
 struct TablesRows {
     bool remain_table = false;
     int col_start;

@@ -168,8 +168,16 @@ void CSVtoXLTABularConverter::modMtmSpSh()
     auto kp_pos = static_cast<size_t>(ini_parser_->getValue<int>("source_csv.kp_col"));
     csv_parser_->mergeColumns(parsed_table_, 0, kp_pos - 1);
 
+    // Reverse column list
+    auto reversed_list = table_config_.delete_cols;
+    std::reverse(reversed_list.begin(), reversed_list.end());
+    // Apply 1 based counter
+    for (auto& element : reversed_list) {
+        element--;
+    }
+
     // Remove columns not used in spreadsheet
-    csv_parser_->deleteColumns(parsed_table_, table_config_.delete_cols);
+    csv_parser_->deleteColumns(parsed_table_, reversed_list);
 
     // Check if header needed, attach header
     auto header = ini_parser_->getValue<std::string>("source_csv.SpSh_header_val");
@@ -179,7 +187,7 @@ void CSVtoXLTABularConverter::modMtmSpSh()
         parsed_table_[0] = table_header;
     }
 
-    // csv_parser_->moveColumn(parsed_table_, 5, 1);
+    // csv_parser_->moveColumn(parsed_table_, 6, 1);
 }
 
 bool CSVtoXLTABularConverter::isEmptyRow(const std::vector<std::string> &vec) {
