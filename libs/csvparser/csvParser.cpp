@@ -99,7 +99,7 @@ void CSVParser::moveColumn(std::map<int, std::vector<std::string>> &table, size_
     for (auto& [row, field] : table) {
         field.insert(field.begin() + column_new_index, field[column_index]);
     }
-    deleteColumn(table, column_index + 1);
+    deleteColumn(table, column_index + 1); // Inserted new column, old column shifted "+1"
 }
 
 void CSVParser::deleteColumn(std::map<int, std::vector<std::string>> &table, size_t column_index)
