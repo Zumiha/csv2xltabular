@@ -158,16 +158,10 @@ void CSVtoXLTABularConverter::modWtTable()
 }
 
 void CSVtoXLTABularConverter::modMtmSpSh()
-{
+{    
     // Extract project data from csv
-    auto data_from_table = csv_parser_->extractTable(parsed_table_, table_config_.prj_cols);
-    auto prj_info = extractAndValidate(data_from_table);
-    std::map<int, std::vector<std::string>> prj_info_table;
-    
-    prj_info_table[1] = table_config_.prj_cols_header;
-    prj_info_table[2] = prj_info;
-    csv_parser_->export_csv(prj_info_table, "prj_info.csv");
-    
+    auto prj_info_table = extractAndValidate(parsed_table_, table_config_.prj_cols, table_config_.prj_cols_header);
+    csv_parser_->export_csv(prj_info_table, "prj_info.csv");  
     
     // MTM SpreadSheet table conversion block
     // Merge columns
@@ -185,7 +179,7 @@ void CSVtoXLTABularConverter::modMtmSpSh()
         parsed_table_[0] = table_header;
     }
 
-    csv_parser_->moveColumn(parsed_table_, 5, 1);
+    // csv_parser_->moveColumn(parsed_table_, 5, 1);
 }
 
 bool CSVtoXLTABularConverter::isEmptyRow(const std::vector<std::string> &vec) {
@@ -195,12 +189,14 @@ bool CSVtoXLTABularConverter::isEmptyRow(const std::vector<std::string> &vec) {
     return all_empty;
 }
 
-std::vector<std::string> CSVtoXLTABularConverter::extractAndValidate(const std::map<int, std::vector<std::string>> &table)
+std::map<int, std::vector<std::string>> CSVtoXLTABularConverter::extractAndValidate(const std::map<int, std::vector<std::string>> &table, const std::vector<int> &columns_list, const std::vector<std::string> &header_list)
 {
     std::cout << "\nExtracting and validating project data.\n";
 
+    auto data_from_table = csv_parser_->extractTable(table, columns_list);
+
     std::vector<std::string> values; // first non-empty row captured here
-    for (const auto& [key, row] : table) {
+    for (const auto& [key, row] : data_from_table) {
         if (isEmptyRow(row)) continue; // skip empty rows and \"\" rows
         if (values.empty()) {            
             values = row; // capture first non-empty row as reference
@@ -225,7 +221,12 @@ std::vector<std::string> CSVtoXLTABularConverter::extractAndValidate(const std::
             }
         }        
     }
-    return values;
+    std::map<int, std::vector<std::string>> prj_info_table;
+
+    prj_info_table[1] = header_list;
+    prj_info_table[2] = values;
+
+    return prj_info_table;
 }
 
 std::string CSVtoXLTABularConverter::headerLineRender(int start_cell, int end_cell, const std::vector<std::string> &header_)

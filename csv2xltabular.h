@@ -86,7 +86,7 @@ public:
     void modMtmSpSh();
 
     bool isEmptyRow(const std::vector<std::string>& vec);
-    std::vector<std::string> extractAndValidate(const std::map<int, std::vector<std::string>>& table);
+    std::map<int, std::vector<std::string>> extractAndValidate(const std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list, const std::vector<std::string>& header_list);
     
     std::string latex_string_ = ""; // LaTeX tabular format string
     
