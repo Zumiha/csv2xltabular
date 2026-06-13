@@ -172,7 +172,7 @@ void CSVtoXLTABularConverter::modMtmSpSh()
     // MTM SpreadSheet table conversion block
     // Merge columns
     auto kp_pos = static_cast<size_t>(ini_parser_->getValue<int>("source_csv.kp_col"));
-    csv_parser_->mergeColumns(parsed_table_, 0, kp_pos);
+    csv_parser_->mergeColumns(parsed_table_, 0, kp_pos - 1);
 
     // Remove columns not used in spreadsheet
     csv_parser_->deleteColumns(parsed_table_, table_config_.delete_cols);
