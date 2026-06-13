@@ -67,11 +67,11 @@ public:
     void convert();  
     void exportToFile(const std::string& output_filename = "wt_table.tex");
     void exportToCSV(const std::string& output_filename = "debug.csv") const {
-        // for (const auto& [k, v] : parsed_table_)
-        // {
-        //     std::cerr << "row " << k << ": " << v.size() << " fields | first='" << (!v.empty() ? v[0] : "<empty>") << "'\n";
-        // }
-        csv_parser_->export_csv(parsed_table_, output_filename);
+        if (table_converted_) {
+            csv_parser_->export_csv(parsed_table_, output_filename);
+        } else {
+            std::cout << "File was not converted, can't export";
+        }
     }    
     
     private:
