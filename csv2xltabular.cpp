@@ -183,6 +183,8 @@ void CSVtoXLTABularConverter::modMtmSpSh()
     auto kp_pos = static_cast<size_t>(ini_parser_->getValue<int>("source_csv.kp_col"));
     csv_parser_->mergeColumns(parsed_table_, 0, kp_pos - 1);
 
+
+
     // Reverse column list
     auto reversed_list = table_config_.delete_cols;
     std::reverse(reversed_list.begin(), reversed_list.end());
@@ -193,6 +195,16 @@ void CSVtoXLTABularConverter::modMtmSpSh()
 
     // Remove columns not used in spreadsheet
     csv_parser_->deleteColumns(parsed_table_, reversed_list);
+
+    // Normalize decimal columns
+    auto delimiter = ",";
+    std::vector<int> dec_cols = {10};
+    normalizeDecCols(parsed_table_, dec_cols, 0, delimiter);
+    dec_cols = {1, 9, 12, 13};
+    normalizeDecCols(parsed_table_, dec_cols, 1, delimiter);
+    dec_cols = {8, 11, 14};
+    normalizeDecCols(parsed_table_, dec_cols, 3, delimiter);
+
 
     // Check if header needed, attach header
     auto header = ini_parser_->getValue<std::string>("source_csv.SpSh_header_val");
@@ -211,6 +223,51 @@ void CSVtoXLTABularConverter::modMtmSpSh()
         break;
     }
 
+}
+
+void CSVtoXLTABularConverter::normalizeDecCols(std::map<int, std::vector<std::string>> &table, const std::vector<int> &columns_list, int precision, const std::string &delimiter)
+{
+    if (precision < 0)
+        throw std::invalid_argument("precision must be >= 0");
+    if (delimiter.empty())
+        throw std::invalid_argument("delimiter must not be empty");
+
+    for (auto& [row_num, fields] : table) {
+        for (int col : columns_list) {
+            int idx = col - 1;  // 1-based → 0-based
+
+            if (idx < 0 || idx >= static_cast<int>(fields.size()))
+                continue;
+
+            std::string& val = fields[idx];
+            if (val.empty()) continue;
+
+            size_t dpos = val.find(delimiter);
+
+            if (precision == 0) {
+                // Remove delimiter and everything after it
+                if (dpos != std::string::npos)
+                    val.resize(dpos);
+                continue;
+            }
+
+            if (dpos == std::string::npos) {
+                // No delimiter found — append it and pad with zeros
+                val += delimiter + std::string(precision, '0');
+            } else {
+                size_t after = val.size() - dpos - delimiter.size();
+
+                if (after > static_cast<size_t>(precision)) {
+                    // Too many digits — truncate
+                    val.resize(dpos + delimiter.size() + precision);
+                } else if (after < static_cast<size_t>(precision)) {
+                    // Too few digits — pad with zeros
+                    val += std::string(precision - after, '0');
+                }
+                // exact match: nothing to do
+            }
+        }
+    }
 }
 
 void CSVtoXLTABularConverter::IntiFormat()

@@ -94,6 +94,8 @@ public:
     void modWtTable();
     void modMtmSpSh();
 
+    void normalizeDecCols(std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list, int precision, const std::string& delimiter = ",");
+    
     void IntiFormat();
 
     bool isEmptyRow(const std::vector<std::string>& vec);
