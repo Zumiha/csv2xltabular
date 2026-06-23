@@ -4,6 +4,8 @@
 #include "csvParser.h"
 #include "IniParser.h"
 
+#include <memory>
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -76,9 +78,9 @@ public:
     
     private:
 
-    CSVParser* csv_parser_;
-    IniParser* ini_parser_;
-    
+    std::unique_ptr<CSVParser> csv_parser_;
+    std::unique_ptr<IniParser> ini_parser_;
+
     int start_colum_ = 0;
     int start_row_ = 0;
     

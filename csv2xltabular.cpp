@@ -1,7 +1,7 @@
 #include "csv2xltabular.h"
 
 CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename, const std::string &ini_filename) {
-    ini_parser_ = new IniParser(ini_filename);
+    ini_parser_ = std::make_unique<IniParser>(ini_filename);
     
     start_row_ = ini_parser_->getValue<int>("source_csv.start_row");
     start_colum_ = ini_parser_->getValue<int>("source_csv.start_column");
@@ -9,7 +9,7 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
     table_config_.max_columns = ini_parser_->getValue<int>("table_settings.max_columns");
     table_config_.remdnr_min = ini_parser_->getValue<int>("table_settings.min_columns");
      
-    csv_parser_ = new CSVParser(csv_filename);
+    csv_parser_ = std::make_unique<CSVParser>(csv_filename);
     std::setlocale(LC_ALL, "Russian"); // Set locale to the user's environment default
     parsed_table_ = csv_parser_->parse_all(start_row_, start_colum_);
 
@@ -47,10 +47,6 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
 
 CSVtoXLTABularConverter::~CSVtoXLTABularConverter()
 {
-    delete csv_parser_;
-    csv_parser_ = nullptr;
-    delete ini_parser_;
-    ini_parser_ = nullptr;
 }
 
 TableConfig CSVtoXLTABularConverter::calculateTableConfig(int _header_size) {
