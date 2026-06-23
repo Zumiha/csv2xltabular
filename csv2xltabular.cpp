@@ -94,7 +94,7 @@ TableConfig CSVtoXLTABularConverter::calculateTableConfig(int _header_size) {
             return table_settings;  
         }
     }
-    throw -1;
+    throw std::runtime_error("calculateTableConfig: no valid column split found");
 }
 
 void CSVtoXLTABularConverter::convert()

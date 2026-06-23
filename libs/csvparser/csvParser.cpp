@@ -31,7 +31,7 @@ std::map<int, std::vector<std::string>> CSVParser::parse_all(int start_row, int 
      * Do not increment line_num_ here — next_row() will do it correctly
      * Using skipped counter instead of line_num_ to track skipped lines, since line_num_ handled later
     **/   
-    while (skipped < static_cast<size_t>(start_row - 1) && std::getline(file_, dummy)) 
+    while (static_cast<size_t>(skipped) < static_cast<size_t>(start_row - 1) && std::getline(file_, dummy)) 
     {
         ++skipped;
         // std::cerr << "[DBG] skipped row " << skipped << ": '" << dummy << "'\n";
