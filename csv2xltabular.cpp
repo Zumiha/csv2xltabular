@@ -20,11 +20,11 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
         break;
     case 2:
         convert_type_ = DataType::MtmSpreadSheet;        
-        table_config_.delete_cols = ini_parser_->getValue<std::vector<int>>("source_csv.delete_cols");
-        table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("source_csv.prj_cols");
-        table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("source_csv.prj_cols_header");
+        table_config_.delete_cols = ini_parser_->getValue<std::vector<int>>("column_del.delete_cols");
+        table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("column_prj.prj_cols");
+        table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("column_prj.prj_cols_header");
 
-        switch (ini_parser_->getValue<int>("source_csv.SpSh_type"))
+        switch (ini_parser_->getValue<int>("sheet_settings.SpSh_type"))
         {
         case 0:
             sheet_type_ = SpShType::Old;            
@@ -176,7 +176,7 @@ void CSVtoXLTABularConverter::modMtmSpSh()
     
     // MTM SpreadSheet table conversion block
     // Merge columns
-    auto kp_pos = static_cast<size_t>(ini_parser_->getValue<int>("source_csv.kp_col"));
+    auto kp_pos = static_cast<size_t>(ini_parser_->getValue<int>("column_del.kp_col"));
     csv_parser_->mergeColumns(parsed_table_, 0, kp_pos - 1);
 
 
@@ -203,10 +203,10 @@ void CSVtoXLTABularConverter::modMtmSpSh()
 
 
     // Check if header needed, attach header
-    auto header = ini_parser_->getValue<std::string>("source_csv.SpSh_header_val");
+    auto header = ini_parser_->getValue<std::string>("sheet_settings.SpSh_header_val");
     if (header == "true") {
         std::cout << "Creating header for SpreadSheet" << std::endl;
-        auto table_header = ini_parser_->getValue<std::vector<std::string>>("source_csv.SpSh_header");
+        auto table_header = ini_parser_->getValue<std::vector<std::string>>("sheet_settings.SpSh_header");
         parsed_table_[0] = table_header;
     }
 
