@@ -35,24 +35,18 @@ public:
 
 };
 
-enum class DataType {
+enum class TableType {
     Default,
-    WtTable,
-    MtmSpreadSheet
-};
-
-enum class SpShType {
-    Default,
-    Old,
-    INTI_1
+    HeadColumn,
+    Other
 };
 
 // Helper function
-constexpr std::string_view to_string(DataType t_) {
+constexpr std::string_view to_string(TableType t_) {
     switch (t_) {
-        case DataType::Default:         return "Default";
-        case DataType::WtTable:         return "WtTable";
-        case DataType::MtmSpreadSheet:  return "MtmSpreadSheet";
+        case TableType::Default:        return "Default";
+        case TableType::HeadColumn:     return "HeadColumn";
+        case TableType::Other:          return "Other";
         default:                        return "Unknown";
     }
 }
@@ -88,8 +82,7 @@ public:
 
     // Parsed table as map
     std::map<int, std::vector<std::string>> parsed_table_;
-    DataType convert_type_;
-    SpShType sheet_type_;
+    TableType convert_type_;
     bool table_converted_ = false;
 
     void modDefault();
@@ -97,7 +90,10 @@ public:
     void modMtmSpSh();
 
     void normalizeDecCols(std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list, int precision, const std::string& delimiter = ",");
-    
+
+    bool has_column_moves_ = false;
+    std::vector<std::pair<int,int>> column_moves_;
+    void userFormat();
     void IntiFormat();
 
     bool isEmptyRow(const std::vector<std::string>& vec);

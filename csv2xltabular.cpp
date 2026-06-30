@@ -5,9 +5,6 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
     
     start_row_ = ini_parser_->getValue<int>("source_csv.start_row");
     start_colum_ = ini_parser_->getValue<int>("source_csv.start_column");
-
-    table_config_.max_columns = ini_parser_->getValue<int>("table_settings.max_columns");
-    table_config_.remdnr_min = ini_parser_->getValue<int>("table_settings.min_columns");
      
     csv_parser_ = std::make_unique<CSVParser>(csv_filename);
     std::setlocale(LC_ALL, "Russian"); // Set locale to the user's environment default
@@ -15,34 +12,37 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
 
     switch (ini_parser_->getValue<int>("source_csv.type"))
     {
-    case 1:
-        convert_type_ = DataType::WtTable;
+    case 0:
+        convert_type_ = TableType::Default;
         break;
-    case 2:
-        convert_type_ = DataType::MtmSpreadSheet;        
-        table_config_.delete_cols = ini_parser_->getValue<std::vector<int>>("column_del.delete_cols");
-        table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("column_prj.prj_cols");
-        table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("column_prj.prj_cols_header");
-
-        switch (ini_parser_->getValue<int>("sheet_settings.SpSh_type"))
-        {
-        case 0:
-            sheet_type_ = SpShType::Old;            
-            throw("no implementation for Old SheetType");
-            break;        
-        case 1:
-            sheet_type_ = SpShType::INTI_1;
-            break;        
-        default:
-            throw("no implementation for default SheetType");
-            break;
-        }
-
+    case 1:
+        convert_type_ = TableType::HeadColumn;
         break;    
     default:
-        convert_type_ = DataType::Default;
+        convert_type_ = TableType::Other;
         break;
     }
+
+    table_config_.max_columns = ini_parser_->getValue<int>("table_settings.max_columns");
+    table_config_.remdnr_min = ini_parser_->getValue<int>("table_settings.min_columns");
+
+    table_config_.delete_cols = ini_parser_->getValue<std::vector<int>>("column_del.delete_cols");
+    table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("column_prj.prj_cols");
+    table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("column_prj.prj_cols_header");
+
+    if (ini_parser_->hasSection("column_moves") && ini_parser_->hasKey("column_moves.from") && ini_parser_->hasKey("column_moves.to")) {
+        has_column_moves_ = true;
+
+        auto cols_from = ini_parser_->getValue<std::vector<int>>("column_moves.from");
+        auto cols_to   = ini_parser_->getValue<std::vector<int>>("column_moves.to");
+
+        if (cols_from.size() != cols_to.size())
+            throw std::runtime_error("column_moves: 'from' and 'to' must have equal length");
+        
+        for (size_t i = 0; i < cols_from.size(); ++i) {
+            column_moves_.emplace_back(cols_from[i], cols_to[i]);
+        }
+    } 
 }
 
 CSVtoXLTABularConverter::~CSVtoXLTABularConverter()
@@ -97,13 +97,13 @@ void CSVtoXLTABularConverter::convert()
 {
     switch (convert_type_)
     {
-    case DataType::WtTable:        
-        std::cout << "Modding to WT table format\n";
-        modWtTable();
-        break;
-    case DataType::MtmSpreadSheet:
-        std::cout << "Modding to SpreadSheet format\n";
+    case TableType::Default:
+        std::cout << "Modding to default format table\n";
         modMtmSpSh();
+        break;
+    case TableType::HeadColumn:        
+        std::cout << "Modding to Head Column format table\n";
+        modWtTable();
         break;
     default:
         std::cout << "Chosen convert type \"" << to_string(convert_type_) << "\" not implemented.";
@@ -208,16 +208,30 @@ void CSVtoXLTABularConverter::modMtmSpSh()
         std::cout << "Creating header for SpreadSheet" << std::endl;
         auto table_header = ini_parser_->getValue<std::vector<std::string>>("sheet_settings.SpSh_header");
         parsed_table_[0] = table_header;
+    }    
+
+    if (has_column_moves_) {
+        for (const auto& [from, to] : column_moves_) {
+            csv_parser_->moveColumn(parsed_table_, from, to);
+        }
+
+        if (ini_parser_->hasKey("column_moves.delete")) {
+            auto delete_cols = ini_parser_->getValue<std::vector<int>>("column_moves.delete");
+            csv_parser_->deleteColumns(parsed_table_, delete_cols);
+        }
     }
 
-    switch (sheet_type_)
-    {
-    case SpShType::INTI_1:
-        IntiFormat();
-        break;    
-    default:
-        break;
-    }
+    // switch (sheet_type_)
+    // {
+    // case SpShType::INTI_1:
+    //     IntiFormat();
+    //     break;   
+    // case SpShType::Default:
+    //     userFormat();
+    //     break; 
+    // default:
+    //     break;
+    // }
 
 }
 
@@ -264,6 +278,11 @@ void CSVtoXLTABularConverter::normalizeDecCols(std::map<int, std::vector<std::st
             }
         }
     }
+}
+
+void CSVtoXLTABularConverter::userFormat()
+{
+
 }
 
 void CSVtoXLTABularConverter::IntiFormat()
