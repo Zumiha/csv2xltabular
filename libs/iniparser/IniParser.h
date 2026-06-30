@@ -56,6 +56,9 @@ public:
         return var_value;        
     }
 
+    bool hasSection(const std::string& section_name) const;
+    bool hasKey(const std::string& request_string) const;
+
 private:
     std::string request_line;
     std::string file_name;
@@ -71,14 +74,16 @@ private:
     void trimString(std::string &str);
     void removeComment(std::string& str);
 
-    bool checkDelim (const std::string &_str, char _a);
-    bool checkDelim (const std::string &_str, char _a, char _b);
+    bool checkDelim (const std::string &_str, char _a) const;
+    bool checkDelim (const std::string &_str, char _a, char _b) const;
 
-    bool checkDubles (const std::string &_str, char _a);
-    bool checkDubles (const std::string &_str, char _a, char _b);
+    bool checkDubles (const std::string &_str, char _a) const;
+    bool checkDubles (const std::string &_str, char _a, char _b) const;
 
     const std::string getKeyValue(const std::string& _sec_name, const std::string& _var_name);
     std::string getKeyValue(const std::string &request);
+
+    bool hasKey(const std::string& section_name, const std::string& key) const;
 
     static std::vector<std::string> splitValue(const std::string& raw, char delim = ',');
 };

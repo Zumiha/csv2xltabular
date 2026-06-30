@@ -9,7 +9,40 @@ IniParser::~IniParser() {
     }
 }
 
-void IniParser::parseFile(std::string &f_name) {
+bool IniParser::hasSection(const std::string &section_name) const
+{
+    auto it = std::find_if(this->SectionsData.begin(), this->SectionsData.end(),
+        [&section_name](const SectionData& s) { return s.name == section_name; });
+    return it != SectionsData.end();
+}
+
+bool IniParser::hasKey(const std::string &request_string) const
+{
+    if (!(checkDelim(request_string, '.') && !checkDubles(request_string, '.')))
+        throw std::invalid_argument("Incorect request syntax");
+
+    std::stringstream ss(request_string);
+    std::vector<std::string> out;
+    std::string s;
+
+    while (std::getline(ss, s, '.'))
+        out.push_back(s);
+    
+    if (out.size() != 2) return false;
+
+    return hasKey(out[0], out[1]); // reuse existing two-arg version
+}
+
+bool IniParser::hasKey(const std::string &section_name, const std::string &key) const
+{
+    auto it = std::find_if(this->SectionsData.begin(), this->SectionsData.end(),
+        [&section_name](const SectionData& s) { return s.name == section_name; });
+    if (it == SectionsData.end()) return false;
+    return it->var_val.find(key) != it->var_val.end();
+}
+
+void IniParser::parseFile(std::string &f_name)
+{
     this->file.open(f_name);
     if (!file) {throw std::invalid_argument(f_name + " could not be opened");}
     std::string string{};
@@ -83,14 +116,14 @@ void IniParser::removeComment(std::string& str) {
     }
 }
 
-bool IniParser::checkDelim (const std::string &_str, char _a) { //проверка разделителя в строке
+bool IniParser::checkDelim (const std::string &_str, char _a) const { //проверка разделителя в строке
     auto check = _str.find_first_of(_a);
     if (check != std::string::npos) {
         return true;
     }
     return false;
 }
-bool IniParser::checkDelim (const std::string &_str, char _a, char _b) { //проверка двух разделителей в строке
+bool IniParser::checkDelim (const std::string &_str, char _a, char _b) const { //проверка двух разделителей в строке
     auto check1 = _str.find_first_of(_a), check2 = _str.find_first_of(_b);
     if (check1 != std::string::npos || check2 != std::string::npos) {
         return true;
@@ -98,7 +131,7 @@ bool IniParser::checkDelim (const std::string &_str, char _a, char _b) { //пр�
     return false;
 }
 
-bool IniParser::checkDubles (const std::string &_str, char _a) { //проверка дублей разделителя в строке
+bool IniParser::checkDubles (const std::string &_str, char _a) const { //проверка дублей разделителя в строке
     auto check_left = _str.find_first_of(_a), check_right = _str.find_last_of(_a);
     if (check_left != check_right) {
         return true;
@@ -106,7 +139,7 @@ bool IniParser::checkDubles (const std::string &_str, char _a) { //провер�
     return false;
 }
 
-bool IniParser::checkDubles (const std::string &_str, char _a, char _b) { //проверка дублей двух разделителей в строке
+bool IniParser::checkDubles (const std::string &_str, char _a, char _b) const { //проверка дублей двух разделителей в строке
     auto check_left = _str.find_first_of(_a), check_right = _str.find_last_of(_a);
     if (check_left != check_right) {
         return true;
