@@ -30,19 +30,7 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
     table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("column_prj.prj_cols");
     table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("column_prj.prj_cols_header");
 
-    if (ini_parser_->hasSection("column_moves") && ini_parser_->hasKey("column_moves.from") && ini_parser_->hasKey("column_moves.to")) {
-        has_column_moves_ = true;
-
-        auto cols_from = ini_parser_->getValue<std::vector<int>>("column_moves.from");
-        auto cols_to   = ini_parser_->getValue<std::vector<int>>("column_moves.to");
-
-        if (cols_from.size() != cols_to.size())
-            throw std::runtime_error("column_moves: 'from' and 'to' must have equal length");
-        
-        for (size_t i = 0; i < cols_from.size(); ++i) {
-            column_moves_.emplace_back(cols_from[i], cols_to[i]);
-        }
-    } 
+    if (ini_parser_->hasSection("column_moves") && ini_parser_->hasKey("column_moves.new_order")) has_column_moves_ = true;
 }
 
 CSVtoXLTABularConverter::~CSVtoXLTABularConverter()
@@ -176,8 +164,8 @@ void CSVtoXLTABularConverter::modMtmSpSh()
     
     // MTM SpreadSheet table conversion block
     // Merge columns
-    auto kp_pos = static_cast<size_t>(ini_parser_->getValue<int>("column_del.kp_col"));
-    csv_parser_->mergeColumns(parsed_table_, 0, kp_pos - 1);
+    auto kp_pos = static_cast<size_t>(ini_parser_->getValue<int>("column_del.kp_col") - 1); // Convert to 0-based index
+    csv_parser_->mergeColumns(parsed_table_, 0, kp_pos);
 
 
 
@@ -208,14 +196,8 @@ void CSVtoXLTABularConverter::modMtmSpSh()
     }    
 
     if (has_column_moves_) {
-        for (const auto& [from, to] : column_moves_) {
-            csv_parser_->moveColumn(parsed_table_, from, to);
-        }
-
-        if (ini_parser_->hasKey("column_moves.delete")) {
-            auto delete_cols = ini_parser_->getValue<std::vector<int>>("column_moves.delete");
-            csv_parser_->deleteColumns(parsed_table_, delete_cols);
-        }
+        auto new_order = apply1basedTo0based(ini_parser_->getValue<std::vector<int>>("column_moves.new_order"));
+        csv_parser_->reorderColumns(parsed_table_, new_order);
     }
 
     // switch (sheet_type_)
