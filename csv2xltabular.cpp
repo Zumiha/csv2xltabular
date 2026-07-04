@@ -30,7 +30,21 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
     table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("column_prj.prj_cols");
     table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("column_prj.prj_cols_header");
 
-    if (ini_parser_->hasSection("column_moves") && ini_parser_->hasKey("column_moves.new_order")) has_column_moves_ = true;
+    if (ini_parser_->hasSection("column_moves")) {
+        bool has_new_order = ini_parser_->hasKey("column_moves.new_order");
+        bool has_from_to   = ini_parser_->hasKey("column_moves.from") && ini_parser_->hasKey("column_moves.to");
+
+        if (has_new_order ^ has_from_to) {
+            // Exactly one approach configured — load accordingly
+            if (has_new_order) {
+             has_column_moves_ = MoveOption::NewOrder;
+            } else {
+                has_column_moves_ = MoveOption::FromTo;
+            }
+        } else {
+            std::cerr << "[WARN] column_moves: specify either new_order OR from+to, not both/neither. No columns will be moved.\n";
+        }
+    }
 }
 
 CSVtoXLTABularConverter::~CSVtoXLTABularConverter()
@@ -195,23 +209,19 @@ void CSVtoXLTABularConverter::modMtmSpSh()
         parsed_table_[0] = table_header;
     }    
 
-    if (has_column_moves_) {
-        auto new_order = apply1basedTo0based(ini_parser_->getValue<std::vector<int>>("column_moves.new_order"));
-        csv_parser_->reorderColumns(parsed_table_, new_order);
+    switch (has_column_moves_)
+    {
+    case MoveOption::NewOrder:
+        std::cout << "Reordering columns based on new_order\n";
+        csv_parser_->reorderColumns(parsed_table_, apply1basedTo0based(ini_parser_->getValue<std::vector<int>>("column_moves.new_order")));
+        break;
+    case MoveOption::FromTo:
+        std::cout << "Moving columns based on from+to\n";
+        csv_parser_->reorderColumns(parsed_table_, apply1basedTo0based(ini_parser_->getValue<std::vector<int>>("column_moves.from")), apply1basedTo0based(ini_parser_->getValue<std::vector<int>>("column_moves.to")));
+        break;
+    default:
+        break;
     }
-
-    // switch (sheet_type_)
-    // {
-    // case SpShType::INTI_1:
-    //     IntiFormat();
-    //     break;   
-    // case SpShType::Default:
-    //     userFormat();
-    //     break; 
-    // default:
-    //     break;
-    // }
-
 }
 
 void CSVtoXLTABularConverter::normalizeDecCols(std::map<int, std::vector<std::string>> &table, const std::vector<int> &columns_list, int precision, const std::string &delimiter)

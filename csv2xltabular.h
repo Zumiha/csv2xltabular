@@ -41,6 +41,12 @@ enum class TableType {
     Other
 };
 
+enum class MoveOption {
+    Default,
+    NewOrder,
+    FromTo
+};
+
 // Helper function
 constexpr std::string_view to_string(TableType t_) {
     switch (t_) {
@@ -91,9 +97,9 @@ public:
 
     void normalizeDecCols(std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list, int precision, const std::string& delimiter = ",");
 
-    bool has_column_moves_ = false;
+    MoveOption has_column_moves_ = MoveOption::Default;
     std::vector<std::pair<int,int>> column_moves_;
-    
+
     std::vector<int> apply1basedTo0based(const std::vector<int>& one_based_indices); 
 
     bool isEmptyRow(const std::vector<std::string>& vec);
