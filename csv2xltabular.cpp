@@ -259,20 +259,6 @@ void CSVtoXLTABularConverter::normalizeDecCols(std::map<int, std::vector<std::st
     }
 }
 
-void CSVtoXLTABularConverter::userFormat()
-{
-
-}
-
-void CSVtoXLTABularConverter::IntiFormat()
-{
-    csv_parser_->moveColumn(parsed_table_, 5, 1);
-    csv_parser_->moveColumn(parsed_table_, 8, 2);
-    csv_parser_->deleteColumn(parsed_table_, 8);
-    csv_parser_->deleteColumn(parsed_table_, 7);
-    
-}
-
 std::vector<int> CSVtoXLTABularConverter::apply1basedTo0based(const std::vector<int> &one_based_indices)
 {
     std::vector<int> zero_based_indices;

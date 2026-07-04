@@ -93,8 +93,6 @@ public:
 
     bool has_column_moves_ = false;
     std::vector<std::pair<int,int>> column_moves_;
-    void userFormat();
-    void IntiFormat();
     
     std::vector<int> apply1basedTo0based(const std::vector<int>& one_based_indices); 
 
