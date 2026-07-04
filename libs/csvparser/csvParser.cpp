@@ -111,7 +111,7 @@ void CSVParser::reorderColumns(std::map<int, std::vector<std::string>> &table, c
 
     std::vector<bool> seen(col_count, false);
     for (int idx : new_order) {
-        if (idx < 1 || idx > static_cast<int>(col_count))
+        if (idx < 0 || idx >= static_cast<int>(col_count))
             throw std::invalid_argument("reorderColumns: index " + std::to_string(idx) + " out of range");
         if (seen[idx])
             throw std::invalid_argument("reorderColumns: duplicate index " + std::to_string(idx));
