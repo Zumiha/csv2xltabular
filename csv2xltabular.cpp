@@ -181,14 +181,11 @@ void CSVtoXLTABularConverter::modMtmSpSh()
 
 
 
-    // Reverse column list
-    auto reversed_list = table_config_.delete_cols;
-    std::reverse(reversed_list.begin(), reversed_list.end());
-    // Apply 1 based counter
-    for (auto& element : reversed_list) {
-        element--;
-    }
-
+    // Delete columns not used in spreadsheet
+    // Apply 0 based counter
+    auto reversed_list = apply1basedTo0based(table_config_.delete_cols);
+    // Sort in descending order to avoid index shifting issues when deleting
+    std::sort(reversed_list.rbegin(), reversed_list.rend());
     // Remove columns not used in spreadsheet
     csv_parser_->deleteColumns(parsed_table_, reversed_list);
 
@@ -292,6 +289,16 @@ void CSVtoXLTABularConverter::IntiFormat()
     csv_parser_->deleteColumn(parsed_table_, 8);
     csv_parser_->deleteColumn(parsed_table_, 7);
     
+}
+
+std::vector<int> CSVtoXLTABularConverter::apply1basedTo0based(const std::vector<int> &one_based_indices)
+{
+    std::vector<int> zero_based_indices;
+    zero_based_indices.reserve(one_based_indices.size());
+    for (int index : one_based_indices) {
+        zero_based_indices.push_back(index - 1);
+    }
+    return zero_based_indices;
 }
 
 bool CSVtoXLTABularConverter::isEmptyRow(const std::vector<std::string> &vec) {

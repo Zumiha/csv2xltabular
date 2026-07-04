@@ -95,6 +95,8 @@ public:
     std::vector<std::pair<int,int>> column_moves_;
     void userFormat();
     void IntiFormat();
+    
+    std::vector<int> apply1basedTo0based(const std::vector<int>& one_based_indices); 
 
     bool isEmptyRow(const std::vector<std::string>& vec);
     std::map<int, std::vector<std::string>> extractAndValidate(const std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list, const std::vector<std::string>& header_list);
