@@ -102,6 +102,32 @@ void CSVParser::moveColumn(std::map<int, std::vector<std::string>> &table, size_
     deleteColumn(table, column_index + 1); // Inserted new column, old column shifted "+1"
 }
 
+void CSVParser::reorderColumns(std::map<int, std::vector<std::string>> &table, const std::vector<int> &new_order)
+{
+    if (table.empty()) return;
+    size_t col_count = table.begin()->second.size();
+    // Validate: new_order must be a permutation of 1..col_count
+    if (new_order.size() != col_count) throw std::invalid_argument("reorderColumns: new_order size must match column count");
+
+    std::vector<bool> seen(col_count, false);
+    for (int idx : new_order) {
+        if (idx < 1 || idx > static_cast<int>(col_count))
+            throw std::invalid_argument("reorderColumns: index " + std::to_string(idx) + " out of range");
+        if (seen[idx])
+            throw std::invalid_argument("reorderColumns: duplicate index " + std::to_string(idx));
+        seen[idx] = true;
+    }
+
+    // Single-pass rebuild per row — no chained insert/delete, no ordering issue
+    for (auto& [row_num, fields] : table) {
+        std::vector<std::string> rebuilt;
+        rebuilt.reserve(fields.size());
+        for (int idx : new_order)
+            rebuilt.push_back(fields[idx]); // 0-based expected
+        fields = std::move(rebuilt);
+    }
+}
+
 void CSVParser::deleteColumn(std::map<int, std::vector<std::string>> &table, size_t column_index)
 {
     std::cout << "Deleting column " << column_index << "\n";
@@ -118,6 +144,12 @@ void CSVParser::deleteColumn(std::map<int, std::vector<std::string>> &table, siz
 
 void CSVParser::deleteColumns(std::map<int, std::vector<std::string>> &table, const std::vector<int> &columns_list)
 {
+    if (table[1].size() < *std::max_element(columns_list.begin(), columns_list.end()) + 1) {
+        std::ostringstream oss;
+        oss << "Out of range for merge: row has only " << table[1].size() << " columns, but need at least " << *std::max_element(columns_list.begin(), columns_list.end()) + 1;
+        throw std::runtime_error(oss.str());
+    }
+
     for (auto& [row_num, field] : table) {
         for (const auto& element : columns_list) {
             field.erase(field.begin() + element);

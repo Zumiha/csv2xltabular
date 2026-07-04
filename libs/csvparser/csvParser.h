@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <map>
 #include <stdexcept>
 #include <optional>
@@ -29,11 +30,11 @@ public:
     std::map<int, std::vector<std::string>> parse_all(int start_row = 0, int start_col = 0);
     
     // Column interactions
-    // Merge columns
     void mergeColumns(std::map<int, std::vector<std::string>>& table, size_t primary_col, size_t secondary_col); 
-    // Move column
     void moveColumn(std::map<int, std::vector<std::string>>& table, size_t column_index, size_t column_new_index);
-    // Delete column
+    
+    void reorderColumns(std::map<int, std::vector<std::string>>& table, const std::vector<int>& new_order);
+
     void deleteColumn(std::map<int, std::vector<std::string>>& table, size_t column_index);
     void deleteColumns (std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list); 
 
