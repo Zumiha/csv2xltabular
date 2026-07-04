@@ -87,21 +87,6 @@ void CSVParser::mergeColumns(std::map<int, std::vector<std::string>> &table, siz
     }
 }
 
-void CSVParser::moveColumn(std::map<int, std::vector<std::string>> &table, size_t column_index, size_t column_new_index)
-{
-    std::cout << "\nMoving column from " << column_index << " to " << column_new_index << "\n";
-    if (table[1].size() < std::max(column_index, column_new_index) + 1) {
-        std::ostringstream oss;
-        oss << "Out of range for merge: row has only " << table[1].size() << " columns, but need at least " << std::max(column_index, column_new_index) + 1;
-        throw std::runtime_error(oss.str());
-    }
-
-    for (auto& [row, field] : table) {
-        field.insert(field.begin() + column_new_index, field[column_index]);
-    }
-    deleteColumn(table, column_index + 1); // Inserted new column, old column shifted "+1"
-}
-
 void CSVParser::reorderColumns(std::map<int, std::vector<std::string>> &table, const std::vector<int> &new_order)
 {
     if (table.empty()) return;
@@ -125,6 +110,50 @@ void CSVParser::reorderColumns(std::map<int, std::vector<std::string>> &table, c
         for (int idx : new_order)
             rebuilt.push_back(fields[idx]); // 0-based expected
         fields = std::move(rebuilt);
+    }
+}
+
+void CSVParser::reorderColumns(std::map<int, std::vector<std::string>> &table, const std::vector<int>& from, const std::vector<int>& to)
+{
+    if (from.size() != to.size())
+        throw std::invalid_argument("reorderColumns: from and to must have equal length");
+    if (table.empty()) return;
+    int col_count = static_cast<int>(table.begin()->second.size());
+
+    // 1st build destination→source map
+    // key = destination index, value = source index
+    std::map<int, int> placement;
+    for (size_t i = 0; i < from.size(); ++i) {
+        if (from[i] < 0 || from[i] >= col_count)    throw std::invalid_argument("reorderColumns: from[" + std::to_string(i) + "]=" + std::to_string(from[i]) + " out of range");
+        if (to[i] < 0 || to[i] >= col_count)        throw std::invalid_argument("reorderColumns: to[" + std::to_string(i) + "]=" + std::to_string(to[i]) + " out of range");
+        if (placement.count(to[i]))                 throw std::invalid_argument("reorderColumns: duplicate destination index " + std::to_string(to[i]));
+        placement[to[i]] = from[i];  // destination → source
+    }
+
+    // 2nd mark moved sources
+    std::set<int> moved_sources;
+    // Collect moved elements in order
+    for (const auto& [dst, src] : placement) moved_sources.insert(src);
+
+    // 3rd rebuild each row
+    for (auto& [row_num, fields] : table) {
+        // Collect non-moved elements in original order
+        std::vector<std::string> remaining;
+        remaining.reserve(col_count - static_cast<int>(moved_sources.size()));
+        for (int i = 0; i < col_count; ++i)
+            if (!moved_sources.count(i)) remaining.push_back(fields[i]);
+    
+        std::vector<std::string> result(col_count);
+
+        // Place moved elements at their destinations
+        for (const auto& [dst, src] : placement) result[dst] = fields[src];
+
+        // Fill remaining positions with non-moved elements in order
+        int rem_idx = 0;
+        for (int i = 0; i < col_count; ++i)
+            if (!placement.count(i)) result[i] = remaining[rem_idx++];
+        
+        fields = std::move(result);
     }
 }
 

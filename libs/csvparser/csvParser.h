@@ -8,6 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <map>
+#include <set>
 #include <stdexcept>
 #include <optional>
 
@@ -31,9 +32,9 @@ public:
     
     // Column interactions
     void mergeColumns(std::map<int, std::vector<std::string>>& table, size_t primary_col, size_t secondary_col); 
-    void moveColumn(std::map<int, std::vector<std::string>>& table, size_t column_index, size_t column_new_index);
     
     void reorderColumns(std::map<int, std::vector<std::string>>& table, const std::vector<int>& new_order);
+    void reorderColumns(std::map<int, std::vector<std::string>>& table, const std::vector<int>& from, const std::vector<int>& to);
 
     void deleteColumn(std::map<int, std::vector<std::string>>& table, size_t column_index);
     void deleteColumns (std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list); 
