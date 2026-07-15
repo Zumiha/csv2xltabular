@@ -101,11 +101,11 @@ void CSVtoXLTABularConverter::convert()
     {
     case TableType::Default:
         std::cout << "Modding to default format table\n";
-        modMtmSpSh();
+        modDefault();
         break;
     case TableType::HeadColumn:        
         std::cout << "Modding to Head Column format table\n";
-        modWtTable();
+        modHeadColumn();
         break;
     default:
         std::cout << "Chosen convert type \"" << to_string(convert_type_) << "\" not implemented.";
@@ -124,53 +124,6 @@ void CSVtoXLTABularConverter::exportToFile(const std::string &output_filename) {
 }
 
 void CSVtoXLTABularConverter::modDefault()
-{
-    // Default table conversion block
-}
-
-void CSVtoXLTABularConverter::modWtTable()
-{
-    // WT measurement table conversion block
-    auto header = parsed_table_[1];
-    int header_size = static_cast<int>(header.size()); 
-    std::cout << "\nheader_size: " << header_size << "\n";
-
-    int table_count, table_rows, column_start, column_end;
-    column_start =  1;
-
-    auto table_config_ = calculateTableConfig(header_size);
-
-    std::string header_line;
-    latex_string_ +="\\newcounter{tablefigure}[section]\n"
-                    "\\renewcommand{\\thetablefigure}{\\thesection.\\arabic{tablefigure}}\n\n";  
-    for (int i = 0; i < table_config_.tables_rows_config.size(); i++) {
-        // Render header line
-        int cell_start = table_config_.tables_rows_config[i].col_start;
-        int cell_end = table_config_.tables_rows_config[i].col_end;
-        int table_size = cell_end - cell_start + 1;
-
-        std::cout << "\ncolumn_start: " << cell_start << " column_end: " << cell_end << "\n";
-        header_line = headerLineRender(
-            cell_start, 
-            cell_end, 
-            header
-        );
-        std::cout << header_line << std::endl;
-        // LaTeX tabular format
-
-        tableRender(
-            table_config_.table_width, 
-            table_config_.table_column_width,  
-            table_size, 
-            cell_start, 
-            cell_end, 
-            parsed_table_, 
-            header_line
-        );
-    }
-}
-
-void CSVtoXLTABularConverter::modMtmSpSh()
 {    
     // Extract project data from csv
     auto prj_info_table = extractAndValidate(parsed_table_, table_config_.prj_cols, table_config_.prj_cols_header);
@@ -221,6 +174,49 @@ void CSVtoXLTABularConverter::modMtmSpSh()
         break;
     default:
         break;
+    }
+}
+
+
+void CSVtoXLTABularConverter::modHeadColumn()
+{
+    // WT measurement table conversion block
+    auto header = parsed_table_[1];
+    int header_size = static_cast<int>(header.size()); 
+    std::cout << "\nheader_size: " << header_size << "\n";
+
+    int table_count, table_rows, column_start, column_end;
+    column_start =  1;
+
+    auto table_config_ = calculateTableConfig(header_size);
+
+    std::string header_line;
+    latex_string_ +="\\newcounter{tablefigure}[section]\n"
+                    "\\renewcommand{\\thetablefigure}{\\thesection.\\arabic{tablefigure}}\n\n";  
+    for (int i = 0; i < table_config_.tables_rows_config.size(); i++) {
+        // Render header line
+        int cell_start = table_config_.tables_rows_config[i].col_start;
+        int cell_end = table_config_.tables_rows_config[i].col_end;
+        int table_size = cell_end - cell_start + 1;
+
+        std::cout << "\ncolumn_start: " << cell_start << " column_end: " << cell_end << "\n";
+        header_line = headerLineRender(
+            cell_start, 
+            cell_end, 
+            header
+        );
+        std::cout << header_line << std::endl;
+        // LaTeX tabular format
+
+        tableRender(
+            table_config_.table_width, 
+            table_config_.table_column_width,  
+            table_size, 
+            cell_start, 
+            cell_end, 
+            parsed_table_, 
+            header_line
+        );
     }
 }
 

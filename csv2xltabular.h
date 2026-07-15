@@ -92,8 +92,7 @@ public:
     bool table_converted_ = false;
 
     void modDefault();
-    void modWtTable();
-    void modMtmSpSh();
+    void modHeadColumn();
 
     void normalizeDecCols(std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list, int precision, const std::string& delimiter = ",");
 
