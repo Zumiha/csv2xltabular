@@ -27,8 +27,16 @@ CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename
     table_config_.remdnr_min = ini_parser_->getValue<int>("table_settings.min_columns");
 
     table_config_.delete_cols = ini_parser_->getValue<std::vector<int>>("column_del.delete_cols");
-    table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("column_prj.prj_cols");
-    table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("column_prj.prj_cols_header");
+
+    if (ini_parser_->hasSection("column_prj")) {
+        if (ini_parser_->hasKey("column_prj.prj_cols") && ini_parser_->hasKey("column_prj.prj_cols_header")) {
+            table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("column_prj.prj_cols");
+            table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("column_prj.prj_cols_header");
+            has_column_prj = true;
+        } else {
+            std::cerr << "No project columns settings found. No project info file will be created.\n"; 
+        }
+    }
 
     if (ini_parser_->hasSection("column_moves")) {
         bool has_new_order = ini_parser_->hasKey("column_moves.new_order");
@@ -125,9 +133,11 @@ void CSVtoXLTABularConverter::exportToFile(const std::string &output_filename) {
 
 void CSVtoXLTABularConverter::modDefault()
 {    
-    // Extract project data from csv
-    auto prj_info_table = extractAndValidate(parsed_table_, table_config_.prj_cols, table_config_.prj_cols_header);
-    csv_parser_->export_csv(prj_info_table, "prj_info.csv");  
+    // Extract project data from csv if available
+    if (has_column_prj) {
+        auto prj_info_table = extractAndValidate(parsed_table_, table_config_.prj_cols, table_config_.prj_cols_header);
+        csv_parser_->export_csv(prj_info_table, "prj_info.csv");
+    }
     
     // MTM SpreadSheet table conversion block
     // Merge columns

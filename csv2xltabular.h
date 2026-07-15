@@ -96,6 +96,7 @@ public:
 
     void normalizeDecCols(std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list, int precision, const std::string& delimiter = ",");
 
+    bool has_column_prj = false;
     MoveOption has_column_moves_ = MoveOption::Default;
     std::vector<std::pair<int,int>> column_moves_;
 
