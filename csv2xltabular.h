@@ -94,7 +94,9 @@ public:
     void modDefault();
     void modHeadColumn();
 
-    void normalizeDecCols(std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list, int precision, const std::string& delimiter = ",");
+    void normalizeDecCols(std::map<int, std::vector<std::string>>& table, const std::vector<int>& columns_list, int precision = 0, const std::string& delimiter = ",");
+    void normalizePrjCols(std::map<int, std::vector<std::string>>& table);
+
 
     bool has_column_prj = false;
     MoveOption has_column_moves_ = MoveOption::Default;

@@ -135,8 +135,11 @@ void CSVtoXLTABularConverter::modDefault()
 {    
     // Extract project data from csv if available
     if (has_column_prj) {
+        std::cout << "Extracting project data\n";
         auto prj_info_table = extractAndValidate(parsed_table_, table_config_.prj_cols, table_config_.prj_cols_header);
+        normalizePrjCols(prj_info_table);
         csv_parser_->export_csv(prj_info_table, "prj_info.csv");
+        std::cout << "Exported project data to file\n";
     }
     
     // MTM SpreadSheet table conversion block
@@ -157,11 +160,11 @@ void CSVtoXLTABularConverter::modDefault()
     // Normalize decimal columns
     auto delimiter = ",";
     std::vector<int> dec_cols = {10};
-    normalizeDecCols(parsed_table_, dec_cols, 0, delimiter);
+    normalizeDecCols(parsed_table_, apply1basedTo0based(dec_cols), 0, delimiter);
     dec_cols = {1, 9, 12, 13};
-    normalizeDecCols(parsed_table_, dec_cols, 1, delimiter);
+    normalizeDecCols(parsed_table_, apply1basedTo0based(dec_cols), 1, delimiter);
     dec_cols = {8, 11, 14};
-    normalizeDecCols(parsed_table_, dec_cols, 3, delimiter);
+    normalizeDecCols(parsed_table_, apply1basedTo0based(dec_cols), 3, delimiter);
 
 
     // Check if header needed, attach header
@@ -239,7 +242,7 @@ void CSVtoXLTABularConverter::normalizeDecCols(std::map<int, std::vector<std::st
 
     for (auto& [row_num, fields] : table) {
         for (int col : columns_list) {
-            int idx = col - 1;  // 1-based → 0-based
+            int idx = col;
 
             if (idx < 0 || idx >= static_cast<int>(fields.size()))
                 continue;
@@ -273,6 +276,20 @@ void CSVtoXLTABularConverter::normalizeDecCols(std::map<int, std::vector<std::st
             }
         }
     }
+}
+
+void CSVtoXLTABularConverter::normalizePrjCols(std::map<int, std::vector<std::string>> &table)
+{
+    auto vec_size = table[2].size(); 
+    std::vector<int> all_cols{}; all_cols.reserve(vec_size);  
+    for (auto i = 0; i < vec_size; i++) all_cols.push_back(i);
+
+    std::map<int, std::vector<std::string>> edit_map;
+    auto it = table.find(2);
+    edit_map.insert(*it);
+
+    normalizeDecCols(edit_map, all_cols, 1);
+    table[2] = edit_map[2];
 }
 
 std::vector<int> CSVtoXLTABularConverter::apply1basedTo0based(const std::vector<int> &one_based_indices)
