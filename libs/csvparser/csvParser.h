@@ -28,7 +28,7 @@ public:
     // Parse entire CSV file and return indexed table
     // Key: row number (1-based), Value: vector of field strings
     // Throws runtime_error on parse failures
-    std::map<int, std::vector<std::string>> parse_all(int start_row = 0, int start_col = 0);
+    std::map<int, std::vector<std::string>> parse_all(int start_row = 1, int start_col = 1);
     
     // Column interactions
     void mergeColumns(std::map<int, std::vector<std::string>>& table, size_t primary_col, size_t secondary_col); 
