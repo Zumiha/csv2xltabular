@@ -2,57 +2,8 @@
 
 CSVtoXLTABularConverter::CSVtoXLTABularConverter(const std::string &csv_filename, const std::string &ini_filename) {
     ini_parser_ = std::make_unique<IniParser>(ini_filename);
-    
-    start_row_ = ini_parser_->getValue<int>("source_csv.start_row");
-    start_colum_ = ini_parser_->getValue<int>("source_csv.start_column");
-     
     csv_parser_ = std::make_unique<CSVParser>(csv_filename);
-    std::setlocale(LC_ALL, "Russian"); // Set locale to the user's environment default
-    parsed_table_ = csv_parser_->parse_all(start_row_, start_colum_);
-
-    switch (ini_parser_->getValue<int>("source_csv.type"))
-    {
-    case 0:
-        convert_type_ = TableType::Default;
-        break;
-    case 1:
-        convert_type_ = TableType::HeadColumn;
-        break;    
-    default:
-        convert_type_ = TableType::Other;
-        break;
-    }
-
-    table_config_.max_columns = ini_parser_->getValue<int>("table_settings.max_columns");
-    table_config_.remdnr_min = ini_parser_->getValue<int>("table_settings.min_columns");
-
-    table_config_.delete_cols = ini_parser_->getValue<std::vector<int>>("column_del.delete_cols");
-
-    if (ini_parser_->hasSection("column_prj")) {
-        if (ini_parser_->hasKey("column_prj.prj_cols") && ini_parser_->hasKey("column_prj.prj_cols_header")) {
-            table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("column_prj.prj_cols");
-            table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("column_prj.prj_cols_header");
-            has_column_prj = true;
-        } else {
-            std::cerr << "No project columns settings found. No project info file will be created.\n"; 
-        }
-    }
-
-    if (ini_parser_->hasSection("column_moves")) {
-        bool has_new_order = ini_parser_->hasKey("column_moves.new_order");
-        bool has_from_to   = ini_parser_->hasKey("column_moves.from") && ini_parser_->hasKey("column_moves.to");
-
-        if (has_new_order ^ has_from_to) {
-            // Exactly one approach configured — load accordingly
-            if (has_new_order) {
-             has_column_moves_ = MoveOption::NewOrder;
-            } else {
-                has_column_moves_ = MoveOption::FromTo;
-            }
-        } else {
-            std::cerr << "[WARN] column_moves: specify either new_order OR from+to, not both/neither. No columns will be moved.\n";
-        }
-    }
+    std::setlocale(LC_ALL, "Russian"); // Set locale to the user's environment default    
 }
 
 CSVtoXLTABularConverter::~CSVtoXLTABularConverter()
@@ -105,20 +56,59 @@ TableConfig CSVtoXLTABularConverter::calculateTableConfig(int _header_size) {
 
 void CSVtoXLTABularConverter::convert()
 {
-    switch (convert_type_)
+    start_row_ = ini_parser_->getValue<int>("source_csv.start_row");
+    start_colum_ = ini_parser_->getValue<int>("source_csv.start_column");
+    
+    table_config_.max_columns = ini_parser_->getValue<int>("table_settings.max_columns");
+    table_config_.remdnr_min = ini_parser_->getValue<int>("table_settings.min_columns");
+
+    table_config_.delete_cols = ini_parser_->getValue<std::vector<int>>("column_del.delete_cols");
+
+    if (ini_parser_->hasSection("column_prj")) {
+        if (ini_parser_->hasKey("column_prj.prj_cols") && ini_parser_->hasKey("column_prj.prj_cols_header")) {
+            table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("column_prj.prj_cols");
+            table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("column_prj.prj_cols_header");
+            has_column_prj = true;
+        } else {
+            std::cerr << "No project columns settings found. No project info file will be created.\n"; 
+        }
+    }
+
+    if (ini_parser_->hasSection("column_moves")) {
+        bool has_new_order = ini_parser_->hasKey("column_moves.new_order");
+        bool has_from_to   = ini_parser_->hasKey("column_moves.from") && ini_parser_->hasKey("column_moves.to");
+
+        if (has_new_order ^ has_from_to) {
+            // Exactly one approach configured — load accordingly
+            if (has_new_order) {
+             has_column_moves_ = MoveOption::NewOrder;
+            } else {
+                has_column_moves_ = MoveOption::FromTo;
+            }
+        } else {
+            std::cerr << "[WARN] column_moves: specify either new_order OR from+to, not both/neither. No columns will be moved.\n";
+        }
+    }
+
+    parsed_table_ = csv_parser_->parse_all(start_row_, start_colum_);
+
+    switch (ini_parser_->getValue<int>("source_csv.type"))
     {
-    case TableType::Default:
+    case 0:
+        convert_type_ = TableType::Default;
         std::cout << "Modding to default format table\n";
         modDefault();
         break;
-    case TableType::HeadColumn:        
+    case 1:
+        convert_type_ = TableType::HeadColumn;
         std::cout << "Modding to Head Column format table\n";
         modHeadColumn();
-        break;
+        break;    
     default:
+        convert_type_ = TableType::Other;
         std::cout << "Chosen convert type \"" << to_string(convert_type_) << "\" not implemented.";
         break;
-    }    
+    }  
     table_converted_ = true;
 }
 
