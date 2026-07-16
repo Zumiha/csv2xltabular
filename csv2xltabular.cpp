@@ -56,40 +56,8 @@ TableConfig CSVtoXLTABularConverter::calculateTableConfig(int _header_size) {
 
 void CSVtoXLTABularConverter::convert()
 {
-    start_row_ = ini_parser_->getValue<int>("source_csv.start_row");
-    start_colum_ = ini_parser_->getValue<int>("source_csv.start_column");
+    loadSettings(); 
     
-    table_config_.max_columns = ini_parser_->getValue<int>("table_settings.max_columns");
-    table_config_.remdnr_min = ini_parser_->getValue<int>("table_settings.min_columns");
-
-    table_config_.delete_cols = ini_parser_->getValue<std::vector<int>>("column_del.delete_cols");
-
-    if (ini_parser_->hasSection("column_prj")) {
-        if (ini_parser_->hasKey("column_prj.prj_cols") && ini_parser_->hasKey("column_prj.prj_cols_header")) {
-            table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("column_prj.prj_cols");
-            table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("column_prj.prj_cols_header");
-            has_column_prj = true;
-        } else {
-            std::cerr << "No project columns settings found. No project info file will be created.\n"; 
-        }
-    }
-
-    if (ini_parser_->hasSection("column_moves")) {
-        bool has_new_order = ini_parser_->hasKey("column_moves.new_order");
-        bool has_from_to   = ini_parser_->hasKey("column_moves.from") && ini_parser_->hasKey("column_moves.to");
-
-        if (has_new_order ^ has_from_to) {
-            // Exactly one approach configured — load accordingly
-            if (has_new_order) {
-             has_column_moves_ = MoveOption::NewOrder;
-            } else {
-                has_column_moves_ = MoveOption::FromTo;
-            }
-        } else {
-            std::cerr << "[WARN] column_moves: specify either new_order OR from+to, not both/neither. No columns will be moved.\n";
-        }
-    }
-
     parsed_table_ = csv_parser_->parse_all(start_row_, start_colum_);
 
     switch (ini_parser_->getValue<int>("source_csv.type"))
@@ -119,6 +87,61 @@ void CSVtoXLTABularConverter::exportToFile(const std::string &output_filename) {
     }
     outfile << this->latex_string_;
     outfile.close();
+}
+
+void CSVtoXLTABularConverter::loadSettings()
+{
+    // Check for start row-column
+    if (ini_parser_->hasKey("source_csv.start_row")) {
+        start_row_ = ini_parser_->getValue<int>("source_csv.start_row");
+    } else {
+        std::cout << "No start row settings found.\n"; // Using default value
+    }
+    if (ini_parser_->hasKey("source_csv.start_column")) {
+        start_colum_ = ini_parser_->getValue<int>("source_csv.start_column");
+    } else {
+        std::cout << "No start column settings found.\n"; // Using default value
+    }
+
+    // Load settings for LaTeX min-max columns
+    table_config_.max_columns = ini_parser_->getValue<int>("table_settings.max_columns");
+    table_config_.remdnr_min = ini_parser_->getValue<int>("table_settings.min_columns");
+
+    // Check for columns to delete
+    if (ini_parser_->hasKey("source_csv.start_row")) {
+        table_config_.delete_cols = ini_parser_->getValue<std::vector<int>>("column_del.delete_cols");
+        has_delete_cols = true;
+    }
+
+    // Check for columns to merge
+
+    // Check for columns to move
+    if (ini_parser_->hasSection("column_moves")) {
+        bool has_new_order = ini_parser_->hasKey("column_moves.new_order");
+        bool has_from_to   = ini_parser_->hasKey("column_moves.from") && ini_parser_->hasKey("column_moves.to");
+
+        if (has_new_order ^ has_from_to) {
+            // Exactly one approach configured — load accordingly
+            if (has_new_order) {
+             has_column_moves_ = MoveOption::NewOrder;
+            } else {
+                has_column_moves_ = MoveOption::FromTo;
+            }
+        } else {
+            std::cerr << "[WARN] column_moves: specify either new_order OR from+to, not both/neither. No columns will be moved.\n";
+        }
+    } else {
+        std::cout << "No move columns settings found. Default columns order would be kept.\n";
+    }
+
+    // Check if columns for prj_info file specified 
+    if (ini_parser_->hasKey("column_prj.prj_cols") && ini_parser_->hasKey("column_prj.prj_cols_header")) {
+        table_config_.prj_cols = ini_parser_->getValue<std::vector<int>>("column_prj.prj_cols");
+        table_config_.prj_cols_header = ini_parser_->getValue<std::vector<std::string>>("column_prj.prj_cols_header");
+        has_column_prj = true;
+    } else {
+        std::cout << "No project columns settings found. No project info file will be created.\n"; 
+    }
 }
 
 void CSVtoXLTABularConverter::modDefault()

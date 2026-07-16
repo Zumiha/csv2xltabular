@@ -86,6 +86,8 @@ public:
     
     TableConfig table_config_;
 
+    void loadSettings();
+
     // Parsed table as map
     std::map<int, std::vector<std::string>> parsed_table_;
     TableType convert_type_;
