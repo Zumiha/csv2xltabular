@@ -81,8 +81,8 @@ public:
     std::unique_ptr<CSVParser> csv_parser_;
     std::unique_ptr<IniParser> ini_parser_;
 
-    int start_colum_ = 0;
-    int start_row_ = 0;
+    int start_colum_ = 1;
+    int start_row_ = 1;
     
     TableConfig table_config_;
 
@@ -99,6 +99,7 @@ public:
 
 
     bool has_column_prj = false;
+    bool has_delete_cols = false;
     MoveOption has_column_moves_ = MoveOption::Default;
     std::vector<std::pair<int,int>> column_moves_;
 
